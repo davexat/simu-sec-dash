@@ -1,73 +1,168 @@
-# Welcome to your Lovable project
+# SecurePYME - Panel de Ciberseguridad
 
-## Project info
+Prototipo funcional de panel de control de ciberseguridad diseñado para PYMEs. Simulación completa con datos ficticios para pruebas con usuarios y evaluaciones de UX/UI.
 
-**URL**: https://lovable.dev/projects/23a7a78c-3560-432b-8957-ef017c8bda77
+## 🎯 Objetivo
 
-## How can I edit this code?
+Este es un prototipo de alta fidelidad que simula una aplicación de ciberseguridad completamente funcional. Todos los datos son ficticios, las acciones son simuladas, y no se ejecutan procesos reales. El objetivo es validar la experiencia de usuario, navegación, claridad de alertas y utilidad de las funciones.
 
-There are several ways of editing your application.
+## 🔐 Credenciales de Acceso
 
-**Use Lovable**
+### Administrador (Vista Completa)
+- **Email:** admin@empresa.com
+- **Contraseña:** demo123
+- Acceso a todas las funciones
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/23a7a78c-3560-432b-8957-ef017c8bda77) and start prompting.
+### Operativo (Vista Limitada)
+- **Email:** operativo@empresa.com
+- **Contraseña:** demo123
+- Acceso restringido a funciones operativas
 
-Changes made via Lovable will be committed automatically to this repo.
+## ✨ Características Principales
 
-**Use your preferred IDE**
+### 1. Dashboard Principal
+- Estado general de equipos (Seguros / En Riesgo / Amenazados)
+- Métricas en tiempo real
+- Tabla de equipos con filtros
+- Vista rápida de alertas activas
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 2. Gestión de Equipos
+- Listado detallado de 8 equipos simulados
+- Estados de conexión de agentes (Conectado / Desconectado / En sincronización)
+- Filtros por estado de seguridad y ubicación
+- Acciones simuladas: análisis forzado, descarga de respaldos, sincronización
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 3. Sistema de Alertas
+- 3 niveles de alerta: Baja, Media, Alta
+- Descripciones detalladas con recomendaciones
+- Acciones: Marcar como resuelta, Ver detalles, Solicitar ayuda
+- Centro de notificaciones
 
-Follow these steps:
+### 4. Historial de Incidentes
+- Registro de últimos 30/90 días
+- Estados: Resuelto, Mitigado, En investigación
+- Filtros por estado y período
+- Vista de línea de tiempo
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 5. Copias de Seguridad
+- Respaldos automáticos con timestamps
+- Verificación de integridad simulada
+- Flujo de restauración con barra de progreso
+- Configuración de políticas de respaldo
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 6. Políticas de Seguridad
+- 6 políticas configurables
+- Switches para habilitar/deshabilitar
+- Historial de cambios
+- Solo accesible para administradores
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 7. Análisis de Conectividad
+- Monitoreo de conexiones activas
+- Detección de destinos sospechosos
+- Análisis de picos de tráfico
+- Recomendaciones automáticas
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 8. Reportes Ejecutivos
+- Resumen mensual de seguridad
+- Nivel de riesgo general
+- Equipos críticos
+- Métricas de rendimiento
+- Descarga de reportes PDF (simulado)
+
+### 9. Planes y Precios
+- 3 planes: Básico, Estándar, Ejecutivo
+- Tabla comparativa de características
+- Simulación de actualización de plan
+
+### 10. Control de Acceso por Roles
+- Rol Administrador: acceso completo
+- Rol Operativo: acceso limitado
+- Mensajes claros cuando se intenta acceso no autorizado
+
+## 🎨 Diseño
+
+- **Colores:** Paleta profesional de ciberseguridad
+  - Azul primario (#3b82f6) para elementos principales
+  - Verde (#16a34a) para estados seguros
+  - Amarillo/Naranja (#f59e0b) para advertencias
+  - Rojo (#dc2626) para amenazas
+- **Tipografía:** Clara y legible, sin jerga técnica
+- **Iconografía:** Lucide React para consistencia
+- **Responsive:** Adaptado a desktop y mobile
+
+## 🛠️ Stack Tecnológico
+
+- **React** con TypeScript
+- **Vite** para desarrollo rápido
+- **Tailwind CSS** para estilos
+- **Shadcn UI** componentes base
+- **React Router** navegación
+- **Context API** gestión de estado de autenticación
+
+## 📊 Datos de Ejemplo
+
+El prototipo incluye:
+- 8 equipos con diferentes estados
+- 3 alertas activas de distintos niveles
+- 5 incidentes históricos
+- 8 respaldos automáticos
+- 6 políticas de seguridad
+- 3 planes de servicio
+
+## 🚀 Instalación y Uso
+
+```bash
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
 npm run dev
+
+# Compilar para producción
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## 📱 Navegación
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Inicie sesión con una de las credenciales proporcionadas
+2. Explore el dashboard principal
+3. Use el menú lateral para navegar entre secciones
+4. Interactúe con alertas, equipos y políticas
+5. Todos los cambios son simulados y no persisten
 
-**Use GitHub Codespaces**
+## 🎭 Simulaciones Implementadas
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Estados de conexión de agentes con animaciones
+- Procesos de análisis con barras de progreso
+- Restauración de respaldos con feedback visual
+- Aplicación de políticas con confirmación
+- Descarga de reportes
+- Actualización de planes
+- Solicitud de ayuda técnica
 
-## What technologies are used for this project?
+## 📝 Notas para Evaluadores
 
-This project is built with:
+- Todas las acciones muestran feedback inmediato (toasts, modales)
+- Los datos no persisten entre recargas
+- Las animaciones y transiciones simulan procesos reales
+- El lenguaje es accesible y no técnico
+- Los colores siguen convenciones estándar de seguridad
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🔒 Seguridad en el Prototipo
 
-## How can I deploy this project?
+Este es un prototipo de demostración. En producción:
+- Usar autenticación real (no localStorage)
+- Implementar backend con API segura
+- Validar todas las entradas de usuario
+- Usar HTTPS en todas las comunicaciones
+- Implementar autorización a nivel de servidor
 
-Simply open [Lovable](https://lovable.dev/projects/23a7a78c-3560-432b-8957-ef017c8bda77) and click on Share -> Publish.
+## 📧 Contacto
 
-## Can I connect a custom domain to my Lovable project?
+Para preguntas sobre el prototipo o evaluación, contacte al equipo de desarrollo.
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+**Versión:** 1.0.0  
+**Última actualización:** Noviembre 2025  
+**Estado:** Prototipo Funcional para Evaluación
