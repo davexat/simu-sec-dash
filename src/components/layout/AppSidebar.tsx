@@ -79,7 +79,7 @@ export function AppSidebar() {
               variant="outline" 
               size="sm"
               onClick={logout}
-              className="w-full"
+              className="w-full border-border bg-background hover:bg-accent text-foreground"
             >
               <LogOut className="h-4 w-4" />
               <span className="ml-2">Cerrar Sesión</span>

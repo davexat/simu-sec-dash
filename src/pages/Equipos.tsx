@@ -8,17 +8,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, Play, Download, RefreshCw } from "lucide-react";
+import { Eye, Play, Download, RefreshCw, AlertTriangle, Plus } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Equipment } from "@/types";
 
 export default function Equipos() {
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [filtroUbicacion, setFiltroUbicacion] = useState<string>("todos");
   const [equipoSeleccionado, setEquipoSeleccionado] = useState<string | null>(null);
   const [dialogAbierto, setDialogAbierto] = useState(false);
+  const [dialogDetallesAbierto, setDialogDetallesAbierto] = useState(false);
+  const [dialogAgregarAbierto, setDialogAgregarAbierto] = useState(false);
   const [accionEnProgreso, setAccionEnProgreso] = useState(false);
   const [progreso, setProgreso] = useState(0);
+  const [claveAgente, setClaveAgente] = useState("");
   const { toast } = useToast();
 
   const equiposFiltrados = mockEquipment.filter(equipo => {
@@ -28,6 +34,55 @@ export default function Equipos() {
   });
 
   const ubicaciones = Array.from(new Set(mockEquipment.map(e => e.ubicacion)));
+
+  const maxEquiposPorPlan: Record<string, number> = {
+    "Básico": 5,
+    "Estándar": 20,
+    "Ejecutivo": 100
+  };
+
+  const planActual = "Estándar";
+  const equiposActuales = mockEquipment.length;
+  const maxEquipos = maxEquiposPorPlan[planActual];
+
+  const getThreatDetails = (equipo: Equipment) => {
+    if (equipo.estado_seguridad === "Amenaza") {
+      return {
+        title: "Amenaza Crítica Detectada",
+        description: "Se detectaron actividades sospechosas en este equipo que requieren atención inmediata.",
+        details: [
+          "Cambio masivo de archivos (>500 archivos modificados en 10 min)",
+          "Patrón consistente con ransomware detectado",
+          "Procesos sospechosos ejecutándose en segundo plano",
+          "Comunicación con IPs en listas de amenazas"
+        ],
+        actions: [
+          "Aislar inmediatamente el equipo de la red",
+          "No apagar el equipo (preservar evidencia forense)",
+          "Restaurar desde el último respaldo verificado",
+          "Ejecutar análisis forense completo"
+        ]
+      };
+    } else if (equipo.estado_seguridad === "Advertencia") {
+      return {
+        title: "Advertencia de Seguridad",
+        description: "Se detectaron condiciones que podrían comprometer la seguridad del equipo.",
+        details: [
+          "Versión del agente desactualizada con vulnerabilidades conocidas",
+          "Políticas de seguridad no completamente aplicadas",
+          "Intentos de conexión de dispositivos USB no autorizados",
+          "Certificados SSL próximos a vencer"
+        ],
+        actions: [
+          "Actualizar agente a la última versión",
+          "Verificar y aplicar todas las políticas de seguridad",
+          "Revisar lista de dispositivos autorizados",
+          "Programar mantenimiento preventivo"
+        ]
+      };
+    }
+    return null;
+  };
 
   const simularAccion = (accion: string, equipoNombre: string) => {
     setAccionEnProgreso(true);
@@ -51,9 +106,33 @@ export default function Equipos() {
   };
 
   const verDetalles = (equipoId: string) => {
-    setEquipoSeleccionado(equipoId);
-    setDialogAbierto(true);
-    setProgreso(0);
+    const equipo = mockEquipment.find(e => e.id === equipoId);
+    if (equipo && (equipo.estado_seguridad === "Amenaza" || equipo.estado_seguridad === "Advertencia")) {
+      setEquipoSeleccionado(equipoId);
+      setDialogDetallesAbierto(true);
+    } else {
+      setEquipoSeleccionado(equipoId);
+      setDialogAbierto(true);
+      setProgreso(0);
+    }
+  };
+
+  const agregarDispositivo = () => {
+    if (!claveAgente.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor ingrese la clave del agente",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Dispositivo agregado",
+      description: `El dispositivo con clave ${claveAgente} se está conectando...`
+    });
+    setDialogAgregarAbierto(false);
+    setClaveAgente("");
   };
 
   const equipoActual = mockEquipment.find(e => e.id === equipoSeleccionado);
@@ -61,11 +140,26 @@ export default function Equipos() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Gestión de Equipos</h1>
-          <p className="text-muted-foreground">
-            Administre todos los equipos conectados con sus agentes de seguridad
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Gestión de Equipos</h1>
+            <p className="text-muted-foreground">
+              Administre todos los equipos conectados con sus agentes de seguridad
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Equipos en el plan</p>
+              <p className="text-2xl font-bold">{equiposActuales} / {maxEquipos}</p>
+            </div>
+            <Button 
+              onClick={() => setDialogAgregarAbierto(true)}
+              disabled={equiposActuales >= maxEquipos}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Agregar Equipo
+            </Button>
+          </div>
         </div>
 
         <Card>
@@ -161,6 +255,7 @@ export default function Equipos() {
           </CardContent>
         </Card>
 
+        {/* Dialog de detalles normales */}
         <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
@@ -242,6 +337,109 @@ export default function Equipos() {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog de detalles de amenaza/advertencia */}
+        <Dialog open={dialogDetallesAbierto} onOpenChange={setDialogDetallesAbierto}>
+          <DialogContent className="max-w-2xl">
+            {equipoActual && getThreatDetails(equipoActual) && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className={`h-5 w-5 ${equipoActual.estado_seguridad === "Amenaza" ? "text-destructive" : "text-warning"}`} />
+                    {getThreatDetails(equipoActual)?.title}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {equipoActual.nombre} - {equipoActual.id}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {getThreatDetails(equipoActual)?.description}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Detalles Detectados:</h4>
+                    <ul className="space-y-1">
+                      {getThreatDetails(equipoActual)?.details.map((detail, idx) => (
+                        <li key={idx} className="text-sm flex items-start gap-2">
+                          <span className="text-destructive mt-1">•</span>
+                          <span>{detail}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Acciones Recomendadas:</h4>
+                    <ol className="space-y-1">
+                      {getThreatDetails(equipoActual)?.actions.map((action, idx) => (
+                        <li key={idx} className="text-sm flex items-start gap-2">
+                          <span className="font-medium">{idx + 1}.</span>
+                          <span>{action}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  <div className="flex gap-2 pt-4 border-t">
+                    <Button variant="destructive" className="flex-1">
+                      Aislar Equipo
+                    </Button>
+                    <Button variant="default" className="flex-1">
+                      Ir a Respaldos
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para agregar dispositivo */}
+        <Dialog open={dialogAgregarAbierto} onOpenChange={setDialogAgregarAbierto}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Agregar Nuevo Dispositivo</DialogTitle>
+              <DialogDescription>
+                Ingrese la clave única del agente instalado en el dispositivo
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="agentKey">Clave del Agente</Label>
+                <Input
+                  id="agentKey"
+                  placeholder="XXXX-XXXX-XXXX-XXXX"
+                  value={claveAgente}
+                  onChange={(e) => setClaveAgente(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  La clave se genera automáticamente al instalar el agente en el dispositivo
+                </p>
+              </div>
+
+              <div className="bg-muted p-3 rounded-md">
+                <p className="text-sm font-medium mb-1">Plan Actual: {planActual}</p>
+                <p className="text-xs text-muted-foreground">
+                  Equipos disponibles: {maxEquipos - equiposActuales} de {maxEquipos}
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={agregarDispositivo} className="flex-1">
+                  Conectar Dispositivo
+                </Button>
+                <Button variant="outline" onClick={() => setDialogAgregarAbierto(false)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
