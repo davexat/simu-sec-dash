@@ -1,4 +1,4 @@
-import { Home, Server, AlertTriangle, History, HardDrive, Shield, Activity, FileText, CreditCard, LogOut } from "lucide-react";
+import { Home, Server, AlertTriangle, History, HardDrive, Shield, Activity, FileText, MonitorSmartphone, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -23,14 +23,14 @@ const menuItems = [
   { title: "Políticas", url: "/politicas", icon: Shield, roles: ["Administrador"] },
   { title: "Análisis", url: "/analisis", icon: Activity, roles: ["Administrador"] },
   { title: "Reportes", url: "/reportes", icon: FileText, roles: ["Administrador"] },
-  { title: "Planes", url: "/planes", icon: CreditCard, roles: ["Administrador"] },
+  { title: "Simulación", url: "/simulacion", icon: MonitorSmartphone, roles: ["Administrador", "Operativo"] },
 ];
 
 export function AppSidebar() {
   const { open } = useSidebar();
   const { user, logout } = useAuth();
 
-  const filteredItems = menuItems.filter(item => 
+  const filteredItems = menuItems.filter(item =>
     user && item.roles.includes(user.rol)
   );
 
@@ -51,10 +51,10 @@ export function AppSidebar() {
               {filteredItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      end 
-                      className="hover:bg-sidebar-accent" 
+                    <NavLink
+                      to={item.url}
+                      end
+                      className="hover:bg-sidebar-accent"
                       activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                     >
                       <item.icon className="h-4 w-4" />
@@ -75,8 +75,8 @@ export function AppSidebar() {
                 <p className="text-xs text-muted-foreground">{user.rol}</p>
               </div>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={logout}
               className="w-full border-border bg-background hover:bg-accent text-foreground"

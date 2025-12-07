@@ -9,9 +9,7 @@ export const mockEquipment: Equipment[] = [
     ultimo_respaldo: "2025-11-10T02:14:00",
     estado_seguridad: "Seguro",
     version_agente: "1.2.3",
-    estado_conexion_agente: "Conectado",
-    ubicacion: "Quito",
-    plan: "Básico"
+    estado_conexion_agente: "Conectado"
   },
   {
     id: "EQ-002",
@@ -21,9 +19,7 @@ export const mockEquipment: Equipment[] = [
     ultimo_respaldo: "2025-11-11T23:05:00",
     estado_seguridad: "Advertencia",
     version_agente: "1.2.1",
-    estado_conexion_agente: "En sincronización",
-    ubicacion: "Guayaquil",
-    plan: "Estándar"
+    estado_conexion_agente: "En sincronización"
   },
   {
     id: "EQ-003",
@@ -33,9 +29,7 @@ export const mockEquipment: Equipment[] = [
     ultimo_respaldo: "2025-11-09T12:00:00",
     estado_seguridad: "Amenaza",
     version_agente: "1.1.9",
-    estado_conexion_agente: "Conectado",
-    ubicacion: "Guayaquil",
-    plan: "Básico"
+    estado_conexion_agente: "Conectado"
   },
   {
     id: "EQ-004",
@@ -45,9 +39,7 @@ export const mockEquipment: Equipment[] = [
     ultimo_respaldo: "2025-11-08T04:30:00",
     estado_seguridad: "Desconectado",
     version_agente: "N/A",
-    estado_conexion_agente: "Desconectado",
-    ubicacion: "Cuenca",
-    plan: "Ejecutivo"
+    estado_conexion_agente: "Desconectado"
   },
   {
     id: "EQ-005",
@@ -57,9 +49,7 @@ export const mockEquipment: Equipment[] = [
     ultimo_respaldo: "2025-11-11T01:20:00",
     estado_seguridad: "Seguro",
     version_agente: "1.2.3",
-    estado_conexion_agente: "Conectado",
-    ubicacion: "Quito",
-    plan: "Estándar"
+    estado_conexion_agente: "Conectado"
   },
   {
     id: "EQ-006",
@@ -69,9 +59,7 @@ export const mockEquipment: Equipment[] = [
     ultimo_respaldo: "2025-11-12T06:10:00",
     estado_seguridad: "Advertencia",
     version_agente: "1.2.0",
-    estado_conexion_agente: "Conectado",
-    ubicacion: "Milagro",
-    plan: "Básico"
+    estado_conexion_agente: "Conectado"
   },
   {
     id: "EQ-007",
@@ -81,9 +69,7 @@ export const mockEquipment: Equipment[] = [
     ultimo_respaldo: "2025-11-10T21:40:00",
     estado_seguridad: "Seguro",
     version_agente: "1.2.3",
-    estado_conexion_agente: "Conectado",
-    ubicacion: "Guayaquil",
-    plan: "Estándar"
+    estado_conexion_agente: "Conectado"
   },
   {
     id: "EQ-008",
@@ -93,9 +79,7 @@ export const mockEquipment: Equipment[] = [
     ultimo_respaldo: "2025-11-12T00:00:00",
     estado_seguridad: "Seguro",
     version_agente: "1.2.3",
-    estado_conexion_agente: "Conectado",
-    ubicacion: "Guayaquil",
-    plan: "Ejecutivo"
+    estado_conexion_agente: "Conectado"
   }
 ];
 

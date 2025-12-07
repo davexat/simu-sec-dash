@@ -235,7 +235,7 @@ export default function Reportes() {
                 Se detectaron 3 intentos de conexión no autorizada.
               </li>
               <li className="text-sm">
-                <strong>Mes actual:</strong> Considerar actualizar al plan Ejecutivo para equipos críticos como
+                <strong>Mes actual:</strong> Considerar actualizar equipos críticos como
                 DB-Clientes para obtener monitoreo 24/7 y respuesta prioritaria.
               </li>
               <li className="text-sm">

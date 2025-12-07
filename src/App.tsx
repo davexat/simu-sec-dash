@@ -13,7 +13,7 @@ import Respaldos from "./pages/Respaldos";
 import Politicas from "./pages/Politicas";
 import Analisis from "./pages/Analisis";
 import Reportes from "./pages/Reportes";
-import Planes from "./pages/Planes";
+import DesktopSimulator from "./pages/DesktopSimulator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,7 +40,7 @@ const App = () => (
             <Route path="/politicas" element={<ProtectedRoute><Politicas /></ProtectedRoute>} />
             <Route path="/analisis" element={<ProtectedRoute><Analisis /></ProtectedRoute>} />
             <Route path="/reportes" element={<ProtectedRoute><Reportes /></ProtectedRoute>} />
-            <Route path="/planes" element={<ProtectedRoute><Planes /></ProtectedRoute>} />
+            <Route path="/simulacion" element={<ProtectedRoute><DesktopSimulator /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  
+
   const seguros = mockEquipment.filter(e => e.estado_seguridad === "Seguro").length;
   const enRiesgo = mockEquipment.filter(e => e.estado_seguridad === "Advertencia").length;
   const amenazados = mockEquipment.filter(e => e.estado_seguridad === "Amenaza").length;
@@ -84,10 +84,8 @@ export default function Dashboard() {
                 <TableRow>
                   <TableHead>Equipo</TableHead>
                   <TableHead>Usuario</TableHead>
-                  <TableHead>Ubicación</TableHead>
-                  <TableHead>Estado Seguridad</TableHead>
-                  <TableHead>Conexión Agente</TableHead>
-                  <TableHead>Plan</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Conexión</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -95,14 +93,12 @@ export default function Dashboard() {
                   <TableRow key={equipo.id}>
                     <TableCell className="font-medium">{equipo.nombre}</TableCell>
                     <TableCell>{equipo.usuario}</TableCell>
-                    <TableCell>{equipo.ubicacion}</TableCell>
                     <TableCell>
                       <StatusBadge status={equipo.estado_seguridad} type="security" />
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={equipo.estado_conexion_agente} type="connection" />
                     </TableCell>
-                    <TableCell>{equipo.plan}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

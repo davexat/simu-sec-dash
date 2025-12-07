@@ -27,31 +27,31 @@ export default function Respaldos() {
   const getVersiones = (backup: Backup) => {
     const baseDate = new Date(backup.fecha);
     return [
-      { 
-        id: `${backup.id}-v1`, 
-        fecha: backup.fecha, 
-        tipo: "Completo", 
+      {
+        id: `${backup.id}-v1`,
+        fecha: backup.fecha,
+        tipo: "Completo",
         tamaño: backup.tamaño,
         esReciente: true
       },
-      { 
-        id: `${backup.id}-v2`, 
-        fecha: new Date(baseDate.getTime() - 10 * 60000).toISOString(), 
-        tipo: "Checkpoint (10 min)", 
+      {
+        id: `${backup.id}-v2`,
+        fecha: new Date(baseDate.getTime() - 10 * 60000).toISOString(),
+        tipo: "Checkpoint (10 min)",
         tamaño: "2.3 GB",
         esReciente: false
       },
-      { 
-        id: `${backup.id}-v3`, 
-        fecha: new Date(baseDate.getTime() - 20 * 60000).toISOString(), 
-        tipo: "Checkpoint (20 min)", 
+      {
+        id: `${backup.id}-v3`,
+        fecha: new Date(baseDate.getTime() - 20 * 60000).toISOString(),
+        tipo: "Checkpoint (20 min)",
         tamaño: "1.8 GB",
         esReciente: false
       },
-      { 
-        id: `${backup.id}-v4`, 
-        fecha: new Date(baseDate.getTime() - 30 * 60000).toISOString(), 
-        tipo: "Checkpoint (30 min)", 
+      {
+        id: `${backup.id}-v4`,
+        fecha: new Date(baseDate.getTime() - 30 * 60000).toISOString(),
+        tipo: "Checkpoint (30 min)",
         tamaño: "2.1 GB",
         esReciente: false
       },
@@ -124,9 +124,9 @@ export default function Respaldos() {
   };
 
   const toggleArchivo = (archivo: string) => {
-    setArchivosSeleccionados(prev => 
-      prev.includes(archivo) 
-        ? prev.filter(a => a !== archivo) 
+    setArchivosSeleccionados(prev =>
+      prev.includes(archivo)
+        ? prev.filter(a => a !== archivo)
         : [...prev, archivo]
     );
   };
@@ -229,8 +229,8 @@ export default function Respaldos() {
                     <TableCell>{backup.tamaño}</TableCell>
                     <TableCell>{getIntegridadBadge(backup.integridad)}</TableCell>
                     <TableCell>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => abrirRestauracion(backup)}
                         disabled={backup.integridad === "Error"}
@@ -265,7 +265,7 @@ export default function Respaldos() {
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div>
                   <p className="font-medium">Checkpoints incrementales</p>
-                  <p className="text-sm text-muted-foreground">Cada 10 minutos (según plan)</p>
+                  <p className="text-sm text-muted-foreground">Cada 10 minutos</p>
                 </div>
                 <Badge className="bg-success/10 text-success">Habilitado</Badge>
               </div>
@@ -295,7 +295,7 @@ export default function Respaldos() {
                 Seleccione la versión y los archivos críticos a restaurar
               </DialogDescription>
             </DialogHeader>
-            
+
             {respaldoSeleccionado && (
               <div className="space-y-4">
                 {!restaurando ? (
@@ -357,15 +357,15 @@ export default function Respaldos() {
 
                     <div className="bg-muted p-3 rounded-md">
                       <p className="text-sm">
-                        <strong>Nota:</strong> Los archivos seleccionados serán restaurados a su estado en el punto de respaldo. 
+                        <strong>Nota:</strong> Los archivos seleccionados serán restaurados a su estado en el punto de respaldo.
                         Los archivos actuales serán respaldados antes de sobrescribirse.
                       </p>
                     </div>
 
                     <div className="flex gap-2">
-                      <Button 
-                        onClick={ejecutarRestauracion} 
-                        className="flex-1" 
+                      <Button
+                        onClick={ejecutarRestauracion}
+                        className="flex-1"
                         disabled={archivosSeleccionados.length === 0}
                       >
                         <RefreshCw className="mr-2 h-4 w-4" />

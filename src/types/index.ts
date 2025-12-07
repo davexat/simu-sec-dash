@@ -3,7 +3,6 @@ export type AgentConnectionStatus = "Conectado" | "Desconectado" | "En sincroniz
 export type AlertLevel = "Baja" | "Media" | "Alta";
 export type IncidentStatus = "Resuelto" | "Mitigado" | "En investigación";
 export type UserRole = "Administrador" | "Operativo";
-export type Plan = "Básico" | "Estándar" | "Ejecutivo";
 
 export interface Equipment {
   id: string;
@@ -14,8 +13,6 @@ export interface Equipment {
   estado_seguridad: SecurityStatus;
   version_agente: string;
   estado_conexion_agente: AgentConnectionStatus;
-  ubicacion: string;
-  plan: Plan;
 }
 
 export interface Alert {

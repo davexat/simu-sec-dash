@@ -17,7 +17,6 @@ import { Equipment } from "@/types";
 
 export default function Equipos() {
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
-  const [filtroUbicacion, setFiltroUbicacion] = useState<string>("todos");
   const [equipoSeleccionado, setEquipoSeleccionado] = useState<string | null>(null);
   const [dialogAbierto, setDialogAbierto] = useState(false);
   const [dialogDetallesAbierto, setDialogDetallesAbierto] = useState(false);
@@ -29,21 +28,10 @@ export default function Equipos() {
 
   const equiposFiltrados = mockEquipment.filter(equipo => {
     const cumpleFiltroEstado = filtroEstado === "todos" || equipo.estado_seguridad === filtroEstado;
-    const cumpleFiltroUbicacion = filtroUbicacion === "todos" || equipo.ubicacion === filtroUbicacion;
-    return cumpleFiltroEstado && cumpleFiltroUbicacion;
+    return cumpleFiltroEstado;
   });
 
-  const ubicaciones = Array.from(new Set(mockEquipment.map(e => e.ubicacion)));
-
-  const maxEquiposPorPlan: Record<string, number> = {
-    "Básico": 5,
-    "Estándar": 20,
-    "Ejecutivo": 100
-  };
-
-  const planActual = "Estándar";
   const equiposActuales = mockEquipment.length;
-  const maxEquipos = maxEquiposPorPlan[planActual];
 
   const getThreatDetails = (equipo: Equipment) => {
     if (equipo.estado_seguridad === "Amenaza") {
@@ -87,7 +75,7 @@ export default function Equipos() {
   const simularAccion = (accion: string, equipoNombre: string) => {
     setAccionEnProgreso(true);
     setProgreso(0);
-    
+
     const intervalo = setInterval(() => {
       setProgreso(prev => {
         if (prev >= 100) {
@@ -147,54 +135,30 @@ export default function Equipos() {
               Administre todos los equipos conectados con sus agentes de seguridad
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Equipos en el plan</p>
-              <p className="text-2xl font-bold">{equiposActuales} / {maxEquipos}</p>
-            </div>
-            <Button 
-              onClick={() => setDialogAgregarAbierto(true)}
-              disabled={equiposActuales >= maxEquipos}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Agregar Equipo
-            </Button>
-          </div>
+          <Button onClick={() => setDialogAgregarAbierto(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Agregar Equipo
+          </Button>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
-            <CardDescription>Filtre equipos por estado de seguridad y ubicación</CardDescription>
+            <CardDescription>Filtre equipos por estado de seguridad</CardDescription>
           </CardHeader>
-          <CardContent className="flex gap-4">
-            <div className="flex-1">
-              <Select value={filtroEstado} onValueChange={setFiltroEstado}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Estado de seguridad" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos los estados</SelectItem>
-                  <SelectItem value="Seguro">Seguro</SelectItem>
-                  <SelectItem value="Advertencia">Advertencia</SelectItem>
-                  <SelectItem value="Amenaza">Amenaza</SelectItem>
-                  <SelectItem value="Desconectado">Desconectado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex-1">
-              <Select value={filtroUbicacion} onValueChange={setFiltroUbicacion}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Ubicación" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todas las ubicaciones</SelectItem>
-                  {ubicaciones.map(ubicacion => (
-                    <SelectItem key={ubicacion} value={ubicacion}>{ubicacion}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <CardContent>
+            <Select value={filtroEstado} onValueChange={setFiltroEstado}>
+              <SelectTrigger>
+                <SelectValue placeholder="Estado de seguridad" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos los estados</SelectItem>
+                <SelectItem value="Seguro">Seguro</SelectItem>
+                <SelectItem value="Advertencia">Advertencia</SelectItem>
+                <SelectItem value="Amenaza">Amenaza</SelectItem>
+                <SelectItem value="Desconectado">Desconectado</SelectItem>
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
 
@@ -216,8 +180,6 @@ export default function Equipos() {
                   <TableHead>Estado Seguridad</TableHead>
                   <TableHead>Conexión Agente</TableHead>
                   <TableHead>Versión</TableHead>
-                  <TableHead>Ubicación</TableHead>
-                  <TableHead>Plan</TableHead>
                   <TableHead>Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -237,11 +199,9 @@ export default function Equipos() {
                     <TableCell>
                       <Badge variant="outline">{equipo.version_agente}</Badge>
                     </TableCell>
-                    <TableCell>{equipo.ubicacion}</TableCell>
-                    <TableCell>{equipo.plan}</TableCell>
                     <TableCell>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => verDetalles(equipo.id)}
                       >
@@ -264,7 +224,7 @@ export default function Equipos() {
                 Información completa y acciones disponibles
               </DialogDescription>
             </DialogHeader>
-            
+
             {equipoActual && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -289,10 +249,6 @@ export default function Equipos() {
                     <p className="text-sm text-muted-foreground">{equipoActual.version_agente}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Plan</p>
-                    <p className="text-sm text-muted-foreground">{equipoActual.plan}</p>
-                  </div>
-                  <div>
                     <p className="text-sm font-medium">Estado de Seguridad</p>
                     <StatusBadge status={equipoActual.estado_seguridad} type="security" />
                   </div>
@@ -310,15 +266,15 @@ export default function Equipos() {
                 )}
 
                 <div className="flex gap-2 pt-4">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => simularAccion("Análisis completo", equipoActual.nombre)}
                     disabled={accionEnProgreso}
                   >
                     <Play className="h-4 w-4 mr-2" />
                     Forzar Análisis
                   </Button>
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => simularAccion("Descarga de respaldo", equipoActual.nombre)}
                     disabled={accionEnProgreso}
@@ -326,7 +282,7 @@ export default function Equipos() {
                     <Download className="h-4 w-4 mr-2" />
                     Descargar Respaldo
                   </Button>
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => simularAccion("Sincronización", equipoActual.nombre)}
                     disabled={accionEnProgreso}
@@ -354,7 +310,7 @@ export default function Equipos() {
                     {equipoActual.nombre} - {equipoActual.id}
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-muted-foreground mb-3">
@@ -409,7 +365,7 @@ export default function Equipos() {
                 Ingrese la clave única del agente instalado en el dispositivo
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               <div>
                 <Label htmlFor="agentKey">Clave del Agente</Label>
@@ -421,13 +377,6 @@ export default function Equipos() {
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   La clave se genera automáticamente al instalar el agente en el dispositivo
-                </p>
-              </div>
-
-              <div className="bg-muted p-3 rounded-md">
-                <p className="text-sm font-medium mb-1">Plan Actual: {planActual}</p>
-                <p className="text-xs text-muted-foreground">
-                  Equipos disponibles: {maxEquipos - equiposActuales} de {maxEquipos}
                 </p>
               </div>
 
