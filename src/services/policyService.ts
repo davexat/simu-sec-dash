@@ -64,3 +64,21 @@ export async function updatePolicy(policyId: string, enabled: boolean): Promise<
         throw error;
     }
 }
+/**
+ * Obtiene el estado actual (habilitada/deshabilitada) de una política
+ * @param policyId - ID de la política
+ */
+export async function getPolicyState(policyId: string): Promise<boolean> {
+    try {
+        const policyRef = doc(db, "policies", policyId);
+        const policySnap = await getDoc(policyRef);
+
+        if (policySnap.exists()) {
+            return policySnap.data().habilitada === true;
+        }
+        return false; // Default if not found
+    } catch (error) {
+        console.error("Error getting policy state:", error);
+        return false;
+    }
+}

@@ -3,8 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import Login from "./pages/Login";
+import { AuthProvider } from "./contexts/AuthContext";
+// import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Equipos from "./pages/Equipos";
 import Alertas from "./pages/Alertas";
@@ -18,10 +18,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/" replace />;
-}
+
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -31,16 +29,16 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/equipos" element={<ProtectedRoute><Equipos /></ProtectedRoute>} />
-            <Route path="/alertas" element={<ProtectedRoute><Alertas /></ProtectedRoute>} />
-            <Route path="/historial" element={<ProtectedRoute><Historial /></ProtectedRoute>} />
-            <Route path="/respaldos" element={<ProtectedRoute><Respaldos /></ProtectedRoute>} />
-            <Route path="/politicas" element={<ProtectedRoute><Politicas /></ProtectedRoute>} />
-            <Route path="/analisis" element={<ProtectedRoute><Analisis /></ProtectedRoute>} />
-            <Route path="/reportes" element={<ProtectedRoute><Reportes /></ProtectedRoute>} />
-            <Route path="/simulacion" element={<ProtectedRoute><DesktopSimulator /></ProtectedRoute>} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/equipos" element={<Equipos />} />
+            <Route path="/alertas" element={<Alertas />} />
+            <Route path="/historial" element={<Historial />} />
+            <Route path="/respaldos" element={<Respaldos />} />
+            <Route path="/politicas" element={<Politicas />} />
+            <Route path="/analisis" element={<Analisis />} />
+            <Route path="/reportes" element={<Reportes />} />
+            <Route path="/simulacion" element={<DesktopSimulator />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

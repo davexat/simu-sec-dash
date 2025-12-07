@@ -1,20 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockPolicies } from "@/data/mockData";
 import { SecurityPolicy } from "@/types";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { updatePolicy, getPolicyState } from "@/services/policyService";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Politicas() {
   const [politicas, setPoliticas] = useState<SecurityPolicy[]>(mockPolicies);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const togglePolitica = (id: string) => {
+  // Cargar estado inicial desde Firebase
+  useEffect(() => {
+    const fetchPolicies = async () => {
+      setLoading(true);
+      try {
+        const updatedPolicies = await Promise.all(
+          mockPolicies.map(async (policy) => {
+            const isEnabled = await getPolicyState(policy.id);
+            return { ...policy, habilitada: isEnabled };
+          })
+        );
+        setPoliticas(updatedPolicies);
+      } catch (error) {
+        console.error("Error fetching policies:", error);
+        toast({
+          title: "Error de sincronización",
+          description: "No se pudieron cargar los estados de las políticas desde el servidor",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPolicies();
+  }, [toast]);
+
+  const togglePolitica = async (id: string) => {
     if (user?.rol !== "Administrador") {
       toast({
         title: "Acceso denegado",
@@ -24,17 +53,33 @@ export default function Politicas() {
       return;
     }
 
-    setPoliticas(politicas.map(p => 
-      p.id === id ? { ...p, habilitada: !p.habilitada } : p
+    // Optimistic update
+    const previousState = [...politicas];
+    const politica = politicas.find(p => p.id === id);
+    if (!politica) return;
+
+    const nuevoEstado = !politica.habilitada;
+
+    setPoliticas(politicas.map(p =>
+      p.id === id ? { ...p, habilitada: nuevoEstado } : p
     ));
 
-    const politica = politicas.find(p => p.id === id);
-    const nuevoEstado = !politica?.habilitada;
+    try {
+      await updatePolicy(id, nuevoEstado);
 
-    toast({
-      title: nuevoEstado ? "Política habilitada" : "Política deshabilitada",
-      description: `${politica?.nombre} ha sido ${nuevoEstado ? "activada" : "desactivada"} correctamente`,
-    });
+      toast({
+        title: nuevoEstado ? "Política habilitada" : "Política deshabilitada",
+        description: `${politica.nombre} ha sido ${nuevoEstado ? "activada" : "desactivada"} correctamente`,
+      });
+    } catch (error) {
+      // Revert on error
+      setPoliticas(previousState);
+      toast({
+        title: "Error al actualizar",
+        description: "No se pudo guardar el cambio en el servidor",
+        variant: "destructive",
+      });
+    }
   };
 
   const habilitadas = politicas.filter(p => p.habilitada).length;
@@ -97,8 +142,8 @@ export default function Politicas() {
           </CardHeader>
           <CardContent className="space-y-4">
             {politicas.map((politica) => (
-              <div 
-                key={politica.id} 
+              <div
+                key={politica.id}
                 className="flex items-start justify-between p-4 border rounded-lg"
               >
                 <div className="flex-1 mr-4">

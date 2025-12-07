@@ -23,7 +23,6 @@ const menuItems = [
   { title: "Políticas", url: "/politicas", icon: Shield, roles: ["Administrador"] },
   { title: "Análisis", url: "/analisis", icon: Activity, roles: ["Administrador"] },
   { title: "Reportes", url: "/reportes", icon: FileText, roles: ["Administrador"] },
-  { title: "Simulación", url: "/simulacion", icon: MonitorSmartphone, roles: ["Administrador", "Operativo"] },
 ];
 
 export function AppSidebar() {
@@ -75,15 +74,7 @@ export function AppSidebar() {
                 <p className="text-xs text-muted-foreground">{user.rol}</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={logout}
-              className="w-full border-border bg-background hover:bg-accent text-foreground"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="ml-2">Cerrar Sesión</span>
-            </Button>
+            {/* Logout button removed */}
           </div>
         )}
       </SidebarContent>

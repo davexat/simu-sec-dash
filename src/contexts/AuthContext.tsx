@@ -19,27 +19,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    // Auto-login as Admin
+    setUser(mockUsers["admin@empresa.com"]);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const foundUser = mockUsers[email as keyof typeof mockUsers];
-    if (foundUser && password === "demo123") {
-      setUser(foundUser);
-      localStorage.setItem("user", JSON.stringify(foundUser));
-      return true;
-    }
-    return false;
+  const login = async (): Promise<boolean> => {
+    return true;
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
+    // No-op or reload to reset state if needed, but effectively we stay logged in
+    window.location.reload();
   };
 
   return (
