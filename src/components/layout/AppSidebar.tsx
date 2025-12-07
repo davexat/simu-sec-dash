@@ -37,9 +37,9 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <div className="p-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-sidebar-primary" />
-            <span className="font-bold text-sidebar-foreground">SecurePYME</span>
+          <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+            <Shield className="h-6 w-6 text-sidebar-primary shrink-0" />
+            <span className="font-bold text-sidebar-foreground group-data-[collapsible=icon]:hidden">SecurePYME</span>
           </div>
         </div>
 
@@ -67,7 +67,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {user && (
-          <div className="mt-auto p-4 border-t border-sidebar-border">
+          <div className="mt-auto p-4 border-t border-sidebar-border group-data-[collapsible=icon]:hidden">
             <div className="mb-3">
               <div className="text-sm text-sidebar-foreground">
                 <p className="font-medium">{user.nombre}</p>
