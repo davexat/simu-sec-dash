@@ -110,30 +110,63 @@ export default function Dashboard() {
         </Card>
 
         {alertasActivas > 0 && (
-          <Card className="border-danger">
-            <CardHeader>
-              <CardTitle className="text-danger">Alertas que Requieren Atención</CardTitle>
-              <CardDescription>Revise y gestione las alertas activas del sistema</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {mockAlerts.filter(a => a.estado === "Activa").map((alerta) => (
-                  <div key={alerta.id} className="p-3 bg-muted rounded-lg flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <StatusBadge status={alerta.nivel} type="alert" />
-                        <span className="font-medium">{alerta.equipo_nombre}</span>
+          <div className="space-y-4">
+            {/* Amenazas Críticas */}
+            {mockAlerts.filter(a => a.estado === "Activa" && a.nivel === "Alta").length > 0 && (
+              <Card className="border-danger">
+                <CardHeader>
+                  <CardTitle className="text-danger">Amenazas Críticas</CardTitle>
+                  <CardDescription>Requieren acción inmediata para proteger sus sistemas</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {mockAlerts.filter(a => a.estado === "Activa" && a.nivel === "Alta").map((alerta) => (
+                      <div key={alerta.id} className="p-3 bg-muted rounded-lg flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <StatusBadge status={alerta.nivel} type="alert" />
+                            <span className="font-medium">{alerta.equipo_nombre}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{alerta.descripcion}</p>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => navigate("/alertas")}>
+                          Ver detalles
+                        </Button>
                       </div>
-                      <p className="text-sm text-muted-foreground">{alerta.descripcion}</p>
-                    </div>
-                    <Button size="sm" variant="outline" onClick={() => navigate("/alertas")}>
-                      Ver detalles
-                    </Button>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Advertencias Informativas */}
+            {mockAlerts.filter(a => a.estado === "Activa" && (a.nivel === "Media" || a.nivel === "Baja")).length > 0 && (
+              <Card className="border-warning">
+                <CardHeader>
+                  <CardTitle className="text-warning">Advertencias Informativas</CardTitle>
+                  <CardDescription>Revise estas notificaciones cuando sea conveniente</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {mockAlerts.filter(a => a.estado === "Activa" && (a.nivel === "Media" || a.nivel === "Baja")).map((alerta) => (
+                      <div key={alerta.id} className="p-3 bg-muted rounded-lg flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <StatusBadge status={alerta.nivel} type="alert" />
+                            <span className="font-medium">{alerta.equipo_nombre}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{alerta.descripcion}</p>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => navigate("/alertas")}>
+                          Ver detalles
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
       </div>
     </DashboardLayout>

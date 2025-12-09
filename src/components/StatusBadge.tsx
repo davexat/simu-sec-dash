@@ -29,7 +29,7 @@ export function StatusBadge({ status, type }: StatusBadgeProps) {
 
   if (type === "alert") {
     const alertConfig = {
-      "Baja": { variant: "secondary" as const, className: "" },
+      "Baja": { variant: "default" as const, className: "bg-success text-success-foreground" },
       "Media": { variant: "default" as const, className: "bg-warning text-warning-foreground" },
       "Alta": { variant: "default" as const, className: "bg-danger text-danger-foreground" }
     };
