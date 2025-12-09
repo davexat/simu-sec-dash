@@ -1,4 +1,7 @@
-import { Equipment, Alert, Incident, Backup, SecurityPolicy } from "@/types";
+import { Equipment, Alert, Incident, Backup, SecurityPolicy, PolicyConfiguration } from "@/types";
+
+// Equipo seleccionado para el simulador de escritorio
+export const SIMULATED_EQUIPMENT_ID = "EQ-006"; // POS-Tienda1 (cajero1)
 
 export const mockEquipment: Equipment[] = [
   {
@@ -218,3 +221,23 @@ export const mockPolicies: SecurityPolicy[] = [
     habilitada: false
   }
 ];
+
+// Configuraciones específicas por equipo (excepciones al comportamiento global)
+export const mockPolicyConfigurations: PolicyConfiguration[] = [
+  {
+    policyId: "POL-004", // Limitar instalaciones
+    equipmentId: "EQ-002", // SERV-FACT
+    enabled: true
+  },
+  {
+    policyId: "POL-004", // Limitar instalaciones
+    equipmentId: "EQ-008", // DB-Clientes
+    enabled: true
+  },
+  {
+    policyId: "POL-003", // Restringir conexiones externas
+    equipmentId: "EQ-008", // DB-Clientes
+    enabled: true // Activada solo para DB aunque esté desactivada globalmente
+  }
+];
+

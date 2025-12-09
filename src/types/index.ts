@@ -53,6 +53,25 @@ export interface SecurityPolicy {
   habilitada: boolean;
 }
 
+// Configuración específica de política por equipo
+export interface PolicyConfiguration {
+  policyId: string;
+  equipmentId: string;
+  enabled: boolean;
+}
+
+// Estado de política para un equipo específico (usado en UI)
+export interface EquipmentPolicyState {
+  equipmentId: string;
+  equipmentName: string;
+  policies: {
+    [policyId: string]: {
+      enabled: boolean;
+      isException: boolean; // true si difiere del estado global
+    };
+  };
+}
+
 export interface User {
   id: string;
   nombre: string;

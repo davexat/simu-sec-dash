@@ -1,5 +1,6 @@
 import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, writeBatch, collection, getDocs } from "firebase/firestore";
+import { PolicyConfiguration } from "@/types";
 
 export interface PolicyCheckResult {
     allowed: boolean;
@@ -9,51 +10,136 @@ export interface PolicyCheckResult {
 }
 
 /**
- * Verifica si una política de seguridad está habilitada en Firebase
- * @param policyId - ID de la política a verificar (ej: "POL-004")
- * @returns Resultado indicando si la acción está permitida
+ * Verifica si una política de seguridad está habilitada para un equipo específico
+ * LÓGICA:
+ * 1. Si la política GLOBAL es TRUE (Habilitada/Bloqueo Activo) -> APLICA PARA TODOS (No hay excepciones)
+ * 2. Si la política GLOBAL es FALSE (Deshabilitada/Bloqueo Inactivo) -> Verificar configuración específica del equipo
  */
-export async function checkPolicy(policyId: string): Promise<PolicyCheckResult> {
+export async function checkPolicy(policyId: string, equipmentId?: string): Promise<PolicyCheckResult> {
     try {
+        // LÓGICA CORREGIDA: PRIORIDAD ESPECÍFICA > GLOBAL
+        // 1. Verificar configuración específica del equipo PRIMERO
+        if (equipmentId) {
+            console.log(`[CHECK POLICY] Verificando equipo ${equipmentId}...`);
+            try {
+                const equipmentRef = doc(db, "policies", policyId, "equipments", equipmentId);
+                const equipmentSnap = await getDoc(equipmentRef);
+
+                if (equipmentSnap.exists()) {
+                    const specificState = equipmentSnap.data().enabled === true;
+                    console.log(`[CHECK POLICY] 🎯 Encontrada excepción para ${equipmentId}: ${specificState ? 'BLOQUEADO' : 'PERMITIDO'} (Ignorando Global)`);
+                    return {
+                        allowed: !specificState,
+                        policyId,
+                        timestamp: new Date().toISOString()
+                    };
+                } else {
+                    console.log(`[CHECK POLICY] ⚠️ No hay configuración específica para ${equipmentId}. Buscando global...`);
+                }
+            } catch (error) {
+                console.warn(`[CHECK POLICY] Error leyendo equipo ${equipmentId}, saltando a global`);
+            }
+        }
+
+        // 2. Si no hay específica, usar Global
         const policyRef = doc(db, "policies", policyId);
         const policySnap = await getDoc(policyRef);
 
-        let isBlocked = false;
-
+        let globalState = false;
         if (policySnap.exists()) {
-            const data = policySnap.data();
-            // Si la política está habilitada (enabled: true), entonces bloquea
-            isBlocked = data.habilitada === true;
+            globalState = policySnap.data().habilitada === true;
+            console.log(`[CHECK POLICY] 🌎 Usando estado Global: ${globalState ? 'ACTIVADA (BLOQUEO)' : 'DESACTIVADA'}`);
         } else {
-            // Si la política no existe, por defecto permitimos (fail-open para demo)
-            // En producción, podrías querer fail-closed (bloquear por defecto)
-            console.warn(`Política ${policyId} no encontrada en Firebase, permitiendo por defecto`);
-            isBlocked = false;
+            console.log(`[CHECK POLICY] Global no existe. Default: False`);
         }
 
         return {
-            allowed: !isBlocked,
+            allowed: !globalState,
             policyId,
             timestamp: new Date().toISOString()
         };
     } catch (error) {
         console.error("Error al verificar política:", error);
-
-        // En caso de error, fail-open (permitir) para no bloquear la demostración
-        // En producción considerar fail-closed (bloquear) por seguridad
         return {
-            allowed: true,
+            allowed: true, // Fail open if error
             policyId,
             timestamp: new Date().toISOString(),
-            error: "Error al conectar con Firebase, permitiendo por defecto"
+            error: "Error al conectar con Firebase"
         };
     }
 }
 
 /**
+ * Obtiene el estado de una política para un equipo específico
+ * Considera la nueva lógica de prioridad de excepciones
+ */
+export async function getPolicyStateForEquipment(
+    policyId: string,
+    equipmentId: string
+): Promise<boolean> {
+    try {
+        // LÓGICA CORREGIDA: PRIORIDAD ESPECÍFICA > GLOBAL
+        // 1. Verificar configuración específica del equipo PRIMERO
+        const equipmentRef = doc(db, "policies", policyId, "equipments", equipmentId);
+        const equipmentSnap = await getDoc(equipmentRef);
+
+        if (equipmentSnap.exists()) {
+            return equipmentSnap.data().enabled === true;
+        }
+
+        // 2. Si no hay excepción, usar estado GLOBAL
+        const policyRef = doc(db, "policies", policyId);
+        const policySnap = await getDoc(policyRef);
+
+        if (policySnap.exists()) {
+            return policySnap.data().habilitada === true;
+        }
+
+        return false;
+
+    } catch (error) {
+        console.error("Error getting policy state for equipment:", error);
+        // Fallback safe assumption: Check global only if specific fails hard
+        return await getPolicyState(policyId);
+    }
+}
+
+/**
+ * Obtiene todas las configuraciones de políticas por equipo desde Firebase
+ * Ahora usando subcolecciones: policies/{policyId}/equipments/{equipmentId}
+ */
+export async function getAllPolicyConfigurations(): Promise<PolicyConfiguration[]> {
+    try {
+        const configurations: PolicyConfiguration[] = [];
+
+        // Obtener todas las políticas
+        const policiesRef = collection(db, "policies");
+        const policiesSnapshot = await getDocs(policiesRef);
+
+        // Para cada política, obtener sus configuraciones por equipo
+        for (const policyDoc of policiesSnapshot.docs) {
+            const equipmentsRef = collection(db, "policies", policyDoc.id, "equipments");
+            const equipmentsSnapshot = await getDocs(equipmentsRef);
+
+            equipmentsSnapshot.forEach(equipDoc => {
+                const data = equipDoc.data();
+                configurations.push({
+                    policyId: policyDoc.id,
+                    equipmentId: equipDoc.id,
+                    enabled: data.enabled
+                });
+            });
+        }
+
+        return configurations;
+    } catch (error) {
+        console.error("Error loading policy configurations:", error);
+        return [];
+    }
+}
+
+/**
  * Actualiza el estado de una política de seguridad
- * @param policyId - ID de la política
- * @param enabled - Si la política debe estar habilitada
  */
 export async function updatePolicy(policyId: string, enabled: boolean): Promise<void> {
     try {
@@ -64,9 +150,9 @@ export async function updatePolicy(policyId: string, enabled: boolean): Promise<
         throw error;
     }
 }
+
 /**
  * Obtiene el estado actual (habilitada/deshabilitada) de una política
- * @param policyId - ID de la política
  */
 export async function getPolicyState(policyId: string): Promise<boolean> {
     try {
@@ -76,9 +162,42 @@ export async function getPolicyState(policyId: string): Promise<boolean> {
         if (policySnap.exists()) {
             return policySnap.data().habilitada === true;
         }
-        return false; // Default if not found
+        return false;
     } catch (error) {
         console.error("Error getting policy state:", error);
         return false;
+    }
+}
+
+/**
+ * Guarda múltiples cambios de políticas en batch
+ * Ahora usando subcolecciones para las configuraciones por equipo
+ */
+export async function savePolicyChanges(
+    globalChanges: { policyId: string; enabled: boolean }[],
+    equipmentChanges: PolicyConfiguration[]
+): Promise<void> {
+    try {
+        const batch = writeBatch(db);
+
+        // Aplicar cambios globales
+        globalChanges.forEach(change => {
+            const policyRef = doc(db, "policies", change.policyId);
+            batch.set(policyRef, { habilitada: change.enabled }, { merge: true });
+        });
+
+        // Aplicar cambios por equipo en subcolecciones
+        equipmentChanges.forEach(config => {
+            const equipmentRef = doc(db, "policies", config.policyId, "equipments", config.equipmentId);
+            batch.set(equipmentRef, {
+                enabled: config.enabled
+            }, { merge: true });
+        });
+
+        await batch.commit();
+        console.log("Cambios de políticas guardados exitosamente en Firebase");
+    } catch (error) {
+        console.error("Error al guardar cambios de políticas:", error);
+        throw error;
     }
 }

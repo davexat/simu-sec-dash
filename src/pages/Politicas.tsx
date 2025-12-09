@@ -1,26 +1,43 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockPolicies } from "@/data/mockData";
-import { SecurityPolicy } from "@/types";
+import { mockPolicies, mockEquipment } from "@/data/mockData";
+import { SecurityPolicy, PolicyConfiguration, Equipment } from "@/types";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { updatePolicy, getPolicyState } from "@/services/policyService";
+import { Button } from "@/components/ui/button";
+import { updatePolicy, getPolicyState, savePolicyChanges, getPolicyStateForEquipment, getAllPolicyConfigurations } from "@/services/policyService";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, CheckCircle } from "lucide-react";
+import { Shield, CheckCircle, ChevronDown, ChevronUp, AlertTriangle, Save, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function Politicas() {
   const [politicas, setPoliticas] = useState<SecurityPolicy[]>(mockPolicies);
+  const [policyConfigs, setPolicyConfigs] = useState<PolicyConfiguration[]>([]);
+  const [expandedPolicies, setExpandedPolicies] = useState<Set<string>>(new Set());
+  const [pendingGlobalChanges, setPendingGlobalChanges] = useState<Map<string, boolean>>(new Map());
+  const [pendingEquipmentChanges, setPendingEquipmentChanges] = useState<PolicyConfiguration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const hasUnsavedChanges = pendingGlobalChanges.size > 0 || pendingEquipmentChanges.length > 0;
 
   // Cargar estado inicial desde Firebase
   useEffect(() => {
     const fetchPolicies = async () => {
       setLoading(true);
       try {
+        // Cargar estados globales de políticas
         const updatedPolicies = await Promise.all(
           mockPolicies.map(async (policy) => {
             const isEnabled = await getPolicyState(policy.id);
@@ -28,6 +45,10 @@ export default function Politicas() {
           })
         );
         setPoliticas(updatedPolicies);
+
+        // Cargar configuraciones por equipo desde Firebase
+        const configurations = await getAllPolicyConfigurations();
+        setPolicyConfigs(configurations);
       } catch (error) {
         console.error("Error fetching policies:", error);
         toast({
@@ -43,7 +64,30 @@ export default function Politicas() {
     fetchPolicies();
   }, [toast]);
 
-  const togglePolitica = async (id: string) => {
+  // Advertencia al intentar salir con cambios sin guardar
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  const togglePolicyExpanded = (policyId: string) => {
+    const newExpanded = new Set(expandedPolicies);
+    if (newExpanded.has(policyId)) {
+      newExpanded.delete(policyId);
+    } else {
+      newExpanded.add(policyId);
+    }
+    setExpandedPolicies(newExpanded);
+  };
+
+  const toggleGlobalPolicy = (policyId: string) => {
     if (user?.rol !== "Administrador") {
       toast({
         title: "Acceso denegado",
@@ -53,36 +97,164 @@ export default function Politicas() {
       return;
     }
 
-    // Optimistic update
-    const previousState = [...politicas];
-    const politica = politicas.find(p => p.id === id);
-    if (!politica) return;
+    const currentPolicy = politicas.find(p => p.id === policyId);
+    if (!currentPolicy) return;
 
-    const nuevoEstado = !politica.habilitada;
+    const newState = !currentPolicy.habilitada;
 
+    // Actualizar estado local
     setPoliticas(politicas.map(p =>
-      p.id === id ? { ...p, habilitada: nuevoEstado } : p
+      p.id === policyId ? { ...p, habilitada: newState } : p
     ));
 
-    try {
-      await updatePolicy(id, nuevoEstado);
+    // Agregar a cambios pendientes
+    const newPending = new Map(pendingGlobalChanges);
+    newPending.set(policyId, newState);
+    setPendingGlobalChanges(newPending);
+  };
 
+  const toggleEquipmentPolicy = (policyId: string, equipmentId: string, currentState: boolean) => {
+    if (user?.rol !== "Administrador") {
       toast({
-        title: nuevoEstado ? "Política habilitada" : "Política deshabilitada",
-        description: `${politica.nombre} ha sido ${nuevoEstado ? "activada" : "desactivada"} correctamente`,
-      });
-    } catch (error) {
-      // Revert on error
-      setPoliticas(previousState);
-      toast({
-        title: "Error al actualizar",
-        description: "No se pudo guardar el cambio en el servidor",
+        title: "Acceso denegado",
+        description: "Solo los administradores pueden modificar políticas de seguridad",
         variant: "destructive",
       });
+      return;
+    }
+
+    const newState = !currentState;
+
+    // Buscar si ya existe una configuración para este equipo/política
+    const existingConfigIndex = policyConfigs.findIndex(
+      c => c.policyId === policyId && c.equipmentId === equipmentId
+    );
+
+    let newConfigs = [...policyConfigs];
+
+    if (existingConfigIndex >= 0) {
+      // Actualizar existente
+      newConfigs[existingConfigIndex] = {
+        ...newConfigs[existingConfigIndex],
+        enabled: newState
+      };
+    } else {
+      // Crear nueva configuración
+      newConfigs.push({
+        policyId,
+        equipmentId,
+        enabled: newState
+      });
+    }
+
+    setPolicyConfigs(newConfigs);
+
+    // Agregar a cambios pendientes
+    const pendingConfig: PolicyConfiguration = {
+      policyId,
+      equipmentId,
+      enabled: newState
+    };
+
+    const newPending = [...pendingEquipmentChanges.filter(
+      c => !(c.policyId === policyId && c.equipmentId === equipmentId)
+    ), pendingConfig];
+
+    setPendingEquipmentChanges(newPending);
+  };
+
+  const getEquipmentPolicyState = (policyId: string, equipmentId: string): { enabled: boolean; isException: boolean } => {
+    const config = policyConfigs.find(
+      c => c.policyId === policyId && c.equipmentId === equipmentId
+    );
+
+    const globalPolicy = politicas.find(p => p.id === policyId);
+    const globalState = globalPolicy?.habilitada || false;
+
+    if (config) {
+      return {
+        enabled: config.enabled,
+        isException: config.enabled !== globalState
+      };
+    }
+
+    return {
+      enabled: globalState,
+      isException: false
+    };
+  };
+
+  const handleSaveChanges = async () => {
+    if (user?.rol !== "Administrador") {
+      toast({
+        title: "Acceso denegado",
+        description: "Solo los administradores pueden guardar cambios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const globalChanges = Array.from(pendingGlobalChanges.entries()).map(([policyId, enabled]) => ({
+        policyId,
+        enabled
+      }));
+
+      await savePolicyChanges(globalChanges, pendingEquipmentChanges);
+
+      toast({
+        title: "Cambios guardados",
+        description: `Se guardaron ${globalChanges.length + pendingEquipmentChanges.length} cambios exitosamente`,
+      });
+
+      // Limpiar cambios pendientes
+      setPendingGlobalChanges(new Map());
+      setPendingEquipmentChanges([]);
+    } catch (error) {
+      toast({
+        title: "Error al guardar",
+        description: "No se pudieron guardar los cambios en el servidor",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleDiscardChanges = () => {
+    // Revertir cambios globales
+    const revertedPolicies = politicas.map(policy => {
+      if (pendingGlobalChanges.has(policy.id)) {
+        return { ...policy, habilitada: !policy.habilitada };
+      }
+      return policy;
+    });
+
+    setPoliticas(revertedPolicies);
+
+    // Revertir cambios de equipos
+    const revertedConfigs = policyConfigs.filter(config => {
+      return !pendingEquipmentChanges.some(
+        pending => pending.policyId === config.policyId && pending.equipmentId === config.equipmentId
+      );
+    });
+
+    setPolicyConfigs(revertedConfigs);
+
+    // Limpiar pendientes
+    setPendingGlobalChanges(new Map());
+    setPendingEquipmentChanges([]);
+    setShowDiscardDialog(false);
+
+    toast({
+      title: "Cambios descartados",
+      description: "Se revirtieron todos los cambios pendientes",
+    });
+  };
+
   const habilitadas = politicas.filter(p => p.habilitada).length;
+  const totalChanges = pendingGlobalChanges.size + pendingEquipmentChanges.length;
 
   return (
     <DashboardLayout>
@@ -90,9 +262,42 @@ export default function Politicas() {
         <div>
           <h1 className="text-3xl font-bold">Políticas de Seguridad</h1>
           <p className="text-muted-foreground">
-            Configure reglas de protección que se aplicarán automáticamente a todos los equipos
+            Configure reglas de protección con control granular por equipo
           </p>
         </div>
+
+        {hasUnsavedChanges && (
+          <Card className="border-warning bg-warning/5">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-warning" />
+                  <span className="font-medium">
+                    {totalChanges} cambio{totalChanges !== 1 ? "s" : ""} pendiente{totalChanges !== 1 ? "s" : ""} sin guardar
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDiscardDialog(true)}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Descartar
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveChanges}
+                    disabled={loading}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar Cambios
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {user?.rol !== "Administrador" && (
           <Card className="border-warning">
@@ -125,9 +330,9 @@ export default function Politicas() {
               <CheckCircle className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
+              <div className="text-2xl font-bold">{mockEquipment.length}</div>
               <p className="text-xs text-muted-foreground">
-                Todas las políticas se aplican automáticamente
+                Con configuración granular disponible
               </p>
             </CardContent>
           </Card>
@@ -137,96 +342,114 @@ export default function Politicas() {
           <CardHeader>
             <CardTitle>Configuración de Políticas</CardTitle>
             <CardDescription>
-              Active o desactive políticas de seguridad según las necesidades de su empresa
+              Configure políticas globalmente o establezca excepciones por equipo
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {politicas.map((politica) => (
-              <div
-                key={politica.id}
-                className="flex items-start justify-between p-4 border rounded-lg"
-              >
-                <div className="flex-1 mr-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <p className="font-medium">{politica.nombre}</p>
-                    {politica.habilitada ? (
-                      <Badge className="bg-success/10 text-success">Activa</Badge>
-                    ) : (
-                      <Badge variant="secondary">Inactiva</Badge>
-                    )}
+            {politicas.map((politica) => {
+              const isExpanded = expandedPolicies.has(politica.id);
+              // Una excepción real es aquella cuyo estado difiere de la política global
+              const realExceptions = policyConfigs.filter(
+                c => c.policyId === politica.id && c.enabled !== politica.habilitada
+              );
+
+              return (
+                <div
+                  key={politica.id}
+                  className="border rounded-lg"
+                >
+                  <div className="flex items-start justify-between p-4">
+                    <div className="flex-1 mr-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <p className="font-medium">{politica.nombre}</p>
+                        {politica.habilitada ? (
+                          <Badge className="bg-success/10 text-success">Activa</Badge>
+                        ) : (
+                          <Badge variant="secondary">Inactiva</Badge>
+                        )}
+                        {realExceptions.length > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {realExceptions.length} {realExceptions.length === 1 ? "excepción" : "excepciones"}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{politica.descripcion}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={politica.habilitada}
+                        onCheckedChange={() => toggleGlobalPolicy(politica.id)}
+                        disabled={user?.rol !== "Administrador"}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => togglePolicyExpanded(politica.id)}
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">{politica.descripcion}</p>
-                </div>
-                <Switch
-                  checked={politica.habilitada}
-                  onCheckedChange={() => togglePolitica(politica.id)}
-                  disabled={user?.rol !== "Administrador"}
-                />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Historial de Cambios</CardTitle>
-            <CardDescription>Registro de modificaciones recientes en las políticas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 bg-muted rounded">
-                <div className="rounded-full p-2 bg-success/10">
-                  <CheckCircle className="h-4 w-4 text-success" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Política aplicada: Bloquear dispositivos USB</p>
-                  <p className="text-xs text-muted-foreground">Habilitada por Admin • Hace 2 días</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 bg-muted rounded">
-                <div className="rounded-full p-2 bg-success/10">
-                  <CheckCircle className="h-4 w-4 text-success" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Política aplicada: Detectar programas desconocidos</p>
-                  <p className="text-xs text-muted-foreground">Habilitada por Admin • Hace 5 días</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 bg-muted rounded">
-                <div className="rounded-full p-2 bg-warning/10">
-                  <Shield className="h-4 w-4 text-warning" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Política desactivada: Control de acceso remoto</p>
-                  <p className="text-xs text-muted-foreground">Deshabilitada por Admin • Hace 1 semana</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  {isExpanded && (
+                    <div className="border-t bg-muted/30 p-4">
+                      <p className="text-sm font-medium mb-3">Configuración por equipo:</p>
+                      <div className="space-y-2">
+                        {mockEquipment.map((equipment) => {
+                          const state = getEquipmentPolicyState(politica.id, equipment.id);
 
-        <Card className="bg-primary/5">
-          <CardHeader>
-            <CardTitle>Recomendaciones de Seguridad</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-success mt-0.5" />
-                <span>Mantenga activas al menos 3 políticas de seguridad básicas</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-success mt-0.5" />
-                <span>Revise y actualice las políticas mensualmente según las necesidades del negocio</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-success mt-0.5" />
-                <span>Documente los cambios de políticas para auditorías futuras</span>
-              </li>
-            </ul>
+                          return (
+                            <div
+                              key={equipment.id}
+                              className="flex items-center justify-between p-2 bg-background rounded border"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">{equipment.nombre}</span>
+                                <span className="text-xs text-muted-foreground">({equipment.usuario})</span>
+                                {state.isException && (
+                                  <Badge variant="outline" className="text-xs">Excepción</Badge>
+                                )}
+                              </div>
+                              <Switch
+                                checked={state.enabled}
+                                onCheckedChange={() => toggleEquipmentPolicy(politica.id, equipment.id, state.enabled)}
+                                disabled={user?.rol !== "Administrador"}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¿Descartar cambios?</DialogTitle>
+            <DialogDescription>
+              Tienes {totalChanges} cambio{totalChanges !== 1 ? "s" : ""} sin guardar. Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDiscardDialog(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleDiscardChanges}>
+              Descartar cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

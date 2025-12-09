@@ -40,6 +40,10 @@
     border-radius: 8px;
     transition: background-color 0.2s ease;
     color: white;
+    height: fit-content;
+    /* FIX: Prevents full-height clickable area */
+    width: fit-content;
+    /* FIX: Prevents full-width clickable area */
 }
 
 .desktopIcon:hover:not(:disabled) {
@@ -120,6 +124,20 @@
     font-size: 0.875rem;
     font-family: "Segoe UI", system-ui, sans-serif;
     padding: 0.5rem 0.75rem;
+}
+
+.userInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    font-size: 0.875rem;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-right: auto;
+    margin-left: 1rem;
 }
 
 .modalContent {

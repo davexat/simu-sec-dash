@@ -1,23 +1,26 @@
 import { useState } from "react";
-// import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import styles from "@/styles/desktop.module.css";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Gamepad2, Loader2, ShieldAlert, CheckCircle } from "lucide-react";
+import { Gamepad2, Loader2, ShieldAlert, CheckCircle, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { checkPolicy } from "@/services/policyService";
 import { cn } from "@/lib/utils";
+import { SIMULATED_EQUIPMENT_ID, mockEquipment } from "@/data/mockData";
 
 export default function DesktopSimulator() {
     const [loading, setLoading] = useState(false);
     const [modalState, setModalState] = useState<"none" | "blocked" | "success">("none");
     const { toast } = useToast();
 
+    // Obtener el equipo simulado
+    const simulatedEquipment = mockEquipment.find(e => e.id === SIMULATED_EQUIPMENT_ID);
+
     const handleInstallClick = async () => {
         setLoading(true);
         try {
-            // Verificar la política POL-004 (Limitar instalaciones)
-            const result = await checkPolicy("POL-004");
+            // Verificar la política POL-004 (Limitar instalaciones) para este equipo específico
+            const result = await checkPolicy("POL-004", SIMULATED_EQUIPMENT_ID);
 
             // Simular un pequeño delay para realismo
             await new Promise(resolve => setTimeout(resolve, 1500));
@@ -81,6 +84,10 @@ export default function DesktopSimulator() {
                             <div className={styles.windowsIconSquare}></div>
                             <div className={styles.windowsIconSquare}></div>
                         </div>
+                    </div>
+                    <div className={styles.userInfo}>
+                        <User className="h-4 w-4" />
+                        <span>{simulatedEquipment?.usuario || "Usuario"}</span>
                     </div>
                     <div className={styles.clock}>
                         {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
