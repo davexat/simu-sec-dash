@@ -266,43 +266,63 @@ export default function Politicas() {
           </p>
         </div>
 
+        {/* Floating Action Bar for Unsaved Changes */}
         {hasUnsavedChanges && (
-          <Card className="border-warning bg-warning/5">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-warning" />
-                  <span className="font-medium">
-                    {totalChanges} cambio{totalChanges !== 1 ? "s" : ""} pendiente{totalChanges !== 1 ? "s" : ""} sin guardar
-                  </span>
+          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-3xl px-4 animate-in slide-in-from-bottom-5 fade-in duration-300">
+            <Card className="border-warning bg-background/95 backdrop-blur shadow-2xl">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-warning/10 rounded-full">
+                      <AlertTriangle className="h-5 w-5 text-warning" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Cambios sin guardar</p>
+                      <p className="text-sm text-muted-foreground">
+                        {totalChanges} modificación{totalChanges !== 1 ? "es" : ""} pendiente{totalChanges !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowDiscardDialog(true)}
+                      className="border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Descartar
+                    </Button>
+                    <Button
+                      onClick={handleSaveChanges}
+                      disabled={loading}
+                      className="bg-primary shadow-md hover:shadow-lg transition-all"
+                    >
+                      {loading ? (
+                        <span className="flex items-center">
+                          <span className="animate-spin mr-2">⏳</span> Guardando...
+                        </span>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Guardar Cambios
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowDiscardDialog(true)}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Descartar
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleSaveChanges}
-                    disabled={loading}
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    Guardar Cambios
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {user?.rol !== "Administrador" && (
-          <Card className="border-warning">
+          <Card className="border-warning bg-warning/5">
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-warning">
+                <AlertTriangle className="h-5 w-5" />
+                <p className="font-medium">Modo de Solo Lectura</p>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1 ml-7">
                 Solo los administradores pueden modificar políticas de seguridad.
                 Contacte a su administrador si necesita realizar cambios.
               </p>
