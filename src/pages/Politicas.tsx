@@ -100,17 +100,84 @@ export default function Politicas() {
     const currentPolicy = politicas.find(p => p.id === policyId);
     if (!currentPolicy) return;
 
+    // Lógica tipo "Select All":
+    // Si activamos Global -> Activamos para TODOS (limpiamos excepciones negativas)
+    // Si desactivamos Global -> Desactivamos para TODOS (limpiamos excepciones positivas)
     const newState = !currentPolicy.habilitada;
 
-    // Actualizar estado local
+    // 1. Actualizar estado local Global
     setPoliticas(politicas.map(p =>
       p.id === policyId ? { ...p, habilitada: newState } : p
     ));
 
-    // Agregar a cambios pendientes
-    const newPending = new Map(pendingGlobalChanges);
-    newPending.set(policyId, newState);
-    setPendingGlobalChanges(newPending);
+    // 2. Registrar cambio Global pendiente
+    const newGlobalPending = new Map(pendingGlobalChanges);
+    newGlobalPending.set(policyId, newState);
+    setPendingGlobalChanges(newGlobalPending);
+
+    // 3. Manejar excepciones (Equipos)
+    // Si activamos (True): Queremos que todos sean True.
+    // - Si hay excepciones 'false' guardadas, las eliminamos (para que hereden True) o las forzamos a True.
+    // Si desactivamos (False): Queremos que todos sean False.
+    // - Si hay excepciones 'true' guardadas, las eliminamos (para que hereden False) o las forzamos a False.
+
+    // Simplificación: Al tocar Global, reiniciamos las excepciones para alinearlas con el nuevo estado global.
+    // Esto significa eliminar cualquier configuración específica pendiente o existente que contradiga el nuevo estado.
+    // O mejor aún: Forzar la limpieza de excepciones para esta política.
+
+    // Filtramos los cambios pendientes de equipos para remover cualquier cambio relacionado a esta política
+    // Efectivamente "Reseteando" a los equipos para que sigan al líder (Global)
+    const filteredEquipmentPending = pendingEquipmentChanges.filter(c => c.policyId !== policyId);
+
+    // Pero espera, si había excepciones guardadas en BD (policyConfigs), también necesitamos anularlas.
+    // La forma de "anular" una excepción en nuestro sistema actual (donde savePolicyChanges sobreescribe)
+    // es enviar una configuración que coincida con el global, o borrarla. 
+    // Nuestro servicio `save` actualmente hace `set` con merge. No borra docs.
+    // Así que para "alinear", debemos explícitamente establecer el estado deseado para todos los que tuvieran config diferente.
+
+    // Estrategia: "Force All"
+    // Iteramos sobre todos los equipos. Si alguno tiene config diferente al nuevo estado, agregamos un cambio pendiente para igualarlo.
+    const newEquipmentPending = [...filteredEquipmentPending];
+
+    mockEquipment.forEach(eq => {
+      // Estado actual (considerando pendientes previos que acabamos de filtrar, así que miramos base +configs)
+      // Buscamos si hay config guardada en BD
+      const existingConfig = policyConfigs.find(c => c.policyId === policyId && c.equipmentId === eq.id);
+
+      // Si existe config y es diferente al nuevo estado global, la forzamos a coincidir
+      // O si queremos "limpiar", lo ideal sería marcar para borrar, pero no tenemos esa operación en batch aún.
+      // Lo más seguro es forzar el valor.
+      if (existingConfig && existingConfig.enabled !== newState) {
+        newEquipmentPending.push({
+          policyId,
+          equipmentId: eq.id,
+          enabled: newState
+        });
+      }
+    });
+
+    setPendingEquipmentChanges(newEquipmentPending);
+
+    // FIX: También actualizar el estado visual local `policyConfigs` para que la UI responda inmediatamente.
+    // Si no hacemos esto, `getEquipmentPolicyState` seguirá leyendo la configuración antigua del estado state `policyConfigs`.
+    const updatedConfigs = [...policyConfigs];
+
+    // Aplicar los cambios forzados a la configuración local
+    newEquipmentPending.forEach(change => {
+      const idx = updatedConfigs.findIndex(c => c.policyId === change.policyId && c.equipmentId === change.equipmentId);
+      if (idx >= 0) {
+        updatedConfigs[idx] = change;
+      } else {
+        updatedConfigs.push(change);
+      }
+    });
+
+    // También, para aquellos que NO tenían config y ahora la heredan... 
+    // en realidad si heredan del global y el global cambió (step 1), ya deberían verse bien.
+    // El problema son SOLO los que tenían una config explícita contraria (excepciones).
+    // Con el bucle de arriba, ya estamos forzando esos configs a alinearse.
+
+    setPolicyConfigs(updatedConfigs);
   };
 
   const toggleEquipmentPolicy = (policyId: string, equipmentId: string, currentState: boolean) => {
@@ -125,42 +192,120 @@ export default function Politicas() {
 
     const newState = !currentState;
 
-    // Buscar si ya existe una configuración para este equipo/política
-    const existingConfigIndex = policyConfigs.findIndex(
-      c => c.policyId === policyId && c.equipmentId === equipmentId
-    );
+    // Lógica solicitada:
+    // "si se selecciona una excepción, es decir, se desactiva una internamente, 
+    // que se desactive el general y se queden las demás activadas"
 
-    let newConfigs = [...policyConfigs];
-
-    if (existingConfigIndex >= 0) {
-      // Actualizar existente
-      newConfigs[existingConfigIndex] = {
-        ...newConfigs[existingConfigIndex],
-        enabled: newState
-      };
-    } else {
-      // Crear nueva configuración
-      newConfigs.push({
-        policyId,
-        equipmentId,
-        enabled: newState
-      });
-    }
-
-    setPolicyConfigs(newConfigs);
-
-    // Agregar a cambios pendientes
-    const pendingConfig: PolicyConfiguration = {
+    // 1. Agregar el cambio para este equipo específico
+    let newConfigs = [...pendingEquipmentChanges];
+    // Remover si ya había cambio pendiente para este equipo
+    newConfigs = newConfigs.filter(c => !(c.policyId === policyId && c.equipmentId === equipmentId));
+    // Agregar nuevo cambio
+    newConfigs.push({
       policyId,
       equipmentId,
       enabled: newState
-    };
+    });
 
-    const newPending = [...pendingEquipmentChanges.filter(
-      c => !(c.policyId === policyId && c.equipmentId === equipmentId)
-    ), pendingConfig];
+    // 2. Manejar el estado Global
+    const globalPolicy = politicas.find(p => p.id === policyId);
+    if (globalPolicy && globalPolicy.habilitada) {
+      // Si el Global estaba Activo y apagamos uno -> Apagar Global VISUALMENTE
+      // PERO asegurar que todos los demás sigan Activos.
+      if (!newState) {
+        // a. Apagar Global
+        const newGlobalPending = new Map(pendingGlobalChanges);
+        newGlobalPending.set(policyId, false);
+        setPendingGlobalChanges(newGlobalPending);
 
-    setPendingEquipmentChanges(newPending);
+        // Actualizar vista local
+        setPoliticas(politicas.map(p => p.id === policyId ? { ...p, habilitada: false } : p));
+
+        // b. Asegurar que los "demás" queden activos.
+        // Iteramos por todos los OTROS equipos.
+        // Si no tienen una configuración explícita "True", se la creamos, 
+        // porque al apagar el Global (paso a), heredarían "False" si no hacemos nada.
+
+        mockEquipment.forEach(eq => {
+          if (eq.id !== equipmentId) {
+            // Verificar si ya tiene pendiente
+            const hasPending = newConfigs.find(c => c.equipmentId === eq.id && c.policyId === policyId);
+
+            if (!hasPending) {
+              // Verificar estado actual (BD)
+              const configInDB = policyConfigs.find(c => c.equipmentId === eq.id && c.policyId === policyId);
+              const isCurrentlyEnabled = configInDB ? configInDB.enabled : true; // Si no hay config, heredaba True del Global
+
+              // Si está habilitado (o heredaba habilitado), necesitamos hacerlo EXPLÍCITO ahora que Global muere.
+              if (isCurrentlyEnabled) {
+                newConfigs.push({
+                  policyId,
+                  equipmentId: eq.id,
+                  enabled: true
+                });
+              }
+            }
+          }
+        });
+      }
+    } else if (globalPolicy && !globalPolicy.habilitada) {
+      // Si Global estaba apagado y encendemos uno...
+      // Comprobar si AHORA todos están encendidos.
+      // Si todos ON -> Encender Global (y limpiar excepciones explícitas para limpieza)
+      if (newState) {
+        // Simular estado futuro de todos
+        const allEnabled = mockEquipment.every(eq => {
+          if (eq.id === equipmentId) return true; // El que acabamos de prender
+
+          // Buscar en pendientes nuevos (aún no en state)
+          const pending = newConfigs.find(c => c.equipmentId === eq.id && c.policyId === policyId);
+          if (pending) return pending.enabled;
+
+          // Buscar en BD
+          const dbConfig = policyConfigs.find(c => c.equipmentId === eq.id && c.policyId === policyId);
+          if (dbConfig) return dbConfig.enabled;
+
+          return false; // Heredaba false
+        });
+
+        if (allEnabled) {
+          // Si todos resultan estar prendidos, volvemos a prender el Switch Global
+          const newGlobalPending = new Map(pendingGlobalChanges);
+          newGlobalPending.set(policyId, true);
+          setPendingGlobalChanges(newGlobalPending);
+
+          // Actualizar vista local
+          setPoliticas(politicas.map(p => p.id === policyId ? { ...p, habilitada: true } : p));
+
+          // Opcional: Limpiar las configuraciones explícitas "True" ya que ahora es redundante
+          // newConfigs = newConfigs.filter(c => c.policyId !== policyId || !c.enabled);
+          // Mantengámoslo simple por ahora sin auto-limpieza agresiva para evitar bugs visuales.
+        }
+      }
+    }
+
+    setPendingEquipmentChanges(newConfigs);
+
+    // Necesitamos actualizar policyConfigs LOCALES también para que la UI responda inmediatamente
+    // aunque policyConfigs refleja "lo guardado", usamos un helper para renderizar.
+    // El renderizado usa `getEquipmentPolicyState` que mira `policyConfigs` Y `global`.
+    // Pero NO mira `pendingEquipmentChanges` ni `pendingGlobalChanges` para calcular visualmente. 
+    // BUG POTENCIAL: La UI no reflejará los cambios pendientes si `getEquipmentPolicyState` no los mira.
+    // Necesitamos actualizar `policyConfigs` temporalmente o hacer que el render lea pendientes.
+    // Dado que `setPolicyConfigs` actualiza el estado, podemos simular el cambio ahí.
+
+    // Actualizar policyConfigs mezclando con los nuevos cambios
+    // (Esto es un poco hacky porque mezcla estado "confirmado" con "pendiente", pero necesario para feedback inmediato)
+    const updatedConfigs = [...policyConfigs];
+    newConfigs.forEach(change => {
+      const idx = updatedConfigs.findIndex(c => c.policyId === change.policyId && c.equipmentId === change.equipmentId);
+      if (idx >= 0) {
+        updatedConfigs[idx] = change;
+      } else {
+        updatedConfigs.push(change);
+      }
+    });
+    setPolicyConfigs(updatedConfigs);
   };
 
   const getEquipmentPolicyState = (policyId: string, equipmentId: string): { enabled: boolean; isException: boolean } => {
