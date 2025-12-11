@@ -15,6 +15,7 @@ import { Backup } from "@/types";
 export default function Respaldos() {
   const [dialogAbierto, setDialogAbierto] = useState(false);
   const [respaldoSeleccionado, setRespaldoSeleccionado] = useState<Backup | null>(null);
+  const [versionSeleccionada, setVersionSeleccionada] = useState<string | null>(null);
   const [restaurando, setRestaurando] = useState(false);
   const [progreso, setProgreso] = useState(0);
   const [archivosSeleccionados, setArchivosSeleccionados] = useState<string[]>([]);
@@ -22,7 +23,6 @@ export default function Respaldos() {
 
   const verificados = mockBackups.filter(b => b.integridad === "Verificado").length;
   const pendientes = mockBackups.filter(b => b.integridad === "Pendiente").length;
-  const errores = mockBackups.filter(b => b.integridad === "Error").length;
 
   const getVersiones = (backup: Backup) => {
     const baseDate = new Date(backup.fecha);
@@ -88,6 +88,7 @@ export default function Respaldos() {
 
   const abrirRestauracion = (backup: Backup) => {
     setRespaldoSeleccionado(backup);
+    setVersionSeleccionada(`${backup.id}-v1`); // Select first by default
     setArchivosSeleccionados(getArchivosCriticos(backup.equipo_id));
     setDialogAbierto(true);
   };
@@ -307,7 +308,11 @@ export default function Respaldos() {
                       </h4>
                       <div className="space-y-2">
                         {getVersiones(respaldoSeleccionado).map((version) => (
-                          <Card key={version.id} className={version.esReciente ? "border-primary" : ""}>
+                          <Card
+                            key={version.id}
+                            className={`cursor-pointer transition-colors ${versionSeleccionada === version.id ? "border-primary bg-primary/5" : "hover:bg-muted/50"}`}
+                            onClick={() => setVersionSeleccionada(version.id)}
+                          >
                             <CardContent className="p-3 flex items-center justify-between">
                               <div>
                                 <p className="font-medium text-sm">
@@ -316,7 +321,9 @@ export default function Respaldos() {
                                 </p>
                                 <p className="text-xs text-muted-foreground">{version.tipo} - {version.tamaño}</p>
                               </div>
-                              <Button variant="ghost" size="sm">Seleccionar</Button>
+                              <div className={`h-4 w-4 rounded-full border border-primary flex items-center justify-center ${versionSeleccionada === version.id ? "bg-primary" : ""}`}>
+                                {versionSeleccionada === version.id && <CheckCircle className="h-3 w-3 text-primary-foreground" />}
+                              </div>
                             </CardContent>
                           </Card>
                         ))}

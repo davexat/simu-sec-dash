@@ -5,11 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Download, FileText, TrendingUp, AlertTriangle, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { mockEquipment, mockAlerts, mockIncidents } from "@/data/mockData";
+import { mockIncidents } from "@/data/mockData";
+import { useData } from "@/contexts/DataProvider";
 
 export default function Reportes() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { equipment, alerts, resolvedAlerts } = useData();
 
   if (user?.rol !== "Administrador") {
     return (
@@ -48,11 +50,13 @@ export default function Reportes() {
     }, 2000);
   };
 
-  const seguros = mockEquipment.filter(e => e.estado_seguridad === "Seguro").length;
-  const enRiesgo = mockEquipment.filter(e => e.estado_seguridad === "Advertencia").length;
-  const amenazados = mockEquipment.filter(e => e.estado_seguridad === "Amenaza").length;
-  const incidentesResueltos = mockIncidents.filter(i => i.estado === "Resuelto").length;
-  const alertasActivas = mockAlerts.filter(a => a.estado === "Activa").length;
+  const seguros = equipment.filter(e => e.estado_seguridad === "Seguro").length;
+  const enRiesgo = equipment.filter(e => e.estado_seguridad === "Advertencia").length;
+  const amenazados = equipment.filter(e => e.estado_seguridad === "Amenaza").length;
+  const alertasActivas = alerts.filter(a => a.estado === "Activa").length;
+
+  // Total de alertas resueltas en esta sesión + incidentes históricos resueltos
+  const totalResueltos = resolvedAlerts.length + mockIncidents.filter(i => i.estado === "Resuelto").length;
 
   return (
     <DashboardLayout>
@@ -104,7 +108,7 @@ export default function Reportes() {
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Incidentes Resueltos</p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold">{incidentesResueltos}</p>
+                  <p className="text-2xl font-bold">{totalResueltos}</p>
                   <Badge className="bg-primary/10 text-primary">60%</Badge>
                 </div>
               </div>
@@ -198,7 +202,7 @@ export default function Reportes() {
                 </div>
                 <p className="text-2xl font-bold mb-1">{mockIncidents.length}</p>
                 <p className="text-sm text-muted-foreground">
-                  {incidentesResueltos} resueltos, {mockIncidents.length - incidentesResueltos} pendientes
+                  {totalResueltos} resueltos, {mockIncidents.length + alertasActivas - totalResueltos} pendientes
                 </p>
               </div>
               <div>

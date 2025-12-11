@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockAlerts } from "@/data/mockData";
+import { useData } from "@/contexts/DataProvider";
 import { Alert } from "@/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -9,34 +9,15 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, CheckCircle, HelpCircle, XCircle } from "lucide-react";
 
 export default function Alertas() {
-  const [alertas, setAlertas] = useState<Alert[]>(mockAlerts);
-  const { toast } = useToast();
+  const { alerts, resolvedAlerts, resolveAlert, requestHelp } = useData();
+  const [ayudaSolicitada, setAyudaSolicitada] = useState<Record<string, boolean>>({});
 
-  const marcarComoResuelta = (id: string) => {
-    setAlertas(alertas.map(a => a.id === id ? { ...a, estado: "Resuelta" as const } : a));
-    toast({
-      title: "Alerta resuelta",
-      description: "La alerta ha sido marcada como resuelta correctamente",
-    });
+  const handleSolicitarAyuda = (alerta: Alert) => {
+    requestHelp(alerta);
+    setAyudaSolicitada(prev => ({ ...prev, [alerta.id]: true }));
   };
 
-  const solicitarAyuda = (alerta: Alert) => {
-    toast({
-      title: "Solicitud de ayuda enviada",
-      description: `Un técnico especializado revisará la alerta ${alerta.id} en las próximas 2 horas`,
-    });
-  };
-
-  const marcarComoFalsoPositivo = (id: string) => {
-    setAlertas(alertas.map(a => a.id === id ? { ...a, estado: "Resuelta" as const } : a));
-    toast({
-      title: "Marcado como falso positivo",
-      description: "La alerta ha sido marcada como falso positivo y será revisada por el equipo técnico",
-    });
-  };
-
-  const alertasActivas = alertas.filter(a => a.estado === "Activa");
-  const alertasResueltas = alertas.filter(a => a.estado === "Resuelta");
+  const alertasActivas = alerts.filter(a => a.estado === "Activa");
 
   return (
     <DashboardLayout>
@@ -66,8 +47,8 @@ export default function Alertas() {
               <CheckCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{alertasResueltas.length}</div>
-              <p className="text-xs text-muted-foreground">En las últimas 24h</p>
+              <div className="text-2xl font-bold">{resolvedAlerts.length}</div>
+              <p className="text-xs text-muted-foreground">En esta sesión</p>
             </CardContent>
           </Card>
 
@@ -120,16 +101,17 @@ export default function Alertas() {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      variant="default"
-                      onClick={() => solicitarAyuda(alerta)}
+                      variant={ayudaSolicitada[alerta.id] ? "secondary" : "default"}
+                      onClick={() => handleSolicitarAyuda(alerta)}
+                      disabled={ayudaSolicitada[alerta.id]}
                     >
                       <HelpCircle className="h-4 w-4 mr-2" />
-                      Solicitar Ayuda
+                      {ayudaSolicitada[alerta.id] ? "Ayuda Solicitada" : "Solicitar Ayuda"}
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => marcarComoFalsoPositivo(alerta.id)}
+                      onClick={() => resolveAlert(alerta.id, true)}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
                       Falso Positivo
@@ -137,7 +119,7 @@ export default function Alertas() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => marcarComoResuelta(alerta.id)}
+                      onClick={() => resolveAlert(alerta.id, false)}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Resuelta
@@ -155,23 +137,36 @@ export default function Alertas() {
             <CardDescription>Historial de alertas gestionadas</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {alertasResueltas.map((alerta) => (
-              <div key={alerta.id} className="p-3 border rounded-lg opacity-70">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle className="h-4 w-4 text-success" />
-                      <span className="font-medium">{alerta.equipo_nombre}</span>
-                      <StatusBadge status={alerta.nivel} type="alert" />
-                    </div>
-                    <p className="text-sm text-muted-foreground">{alerta.descripcion}</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(alerta.fecha).toLocaleString('es-ES')}
-                  </span>
-                </div>
+            {resolvedAlerts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No hay alertas resueltas en esta sesión</p>
               </div>
-            ))}
+            ) : (
+              resolvedAlerts.map((alerta) => (
+                <div key={alerta.id} className="p-3 border rounded-lg opacity-70">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        {alerta.estado === "Falso Positivo" ? (
+                          <XCircle className="h-4 w-4 text-warning" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4 text-success" />
+                        )}
+                        <span className="font-medium">{alerta.equipo_nombre}</span>
+                        <StatusBadge status={alerta.nivel} type="alert" />
+                        <span className="text-xs px-2 py-0.5 rounded bg-muted">
+                          {alerta.estado}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{alerta.descripcion}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(alerta.fecha).toLocaleString('es-ES')}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
 

@@ -10,10 +10,10 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, type }: StatusBadgeProps) {
   if (type === "security") {
     const securityConfig = {
-      "Seguro": { variant: "default" as const, className: "bg-success text-success-foreground", icon: Shield },
-      "Advertencia": { variant: "default" as const, className: "bg-warning text-warning-foreground", icon: AlertTriangle },
-      "Amenaza": { variant: "default" as const, className: "bg-danger text-danger-foreground", icon: XCircle },
-      "Desconectado": { variant: "secondary" as const, className: "", icon: WifiOff }
+      "Seguro": { variant: "default" as const, className: "bg-success text-success-foreground hover:bg-success/80", icon: Shield },
+      "Advertencia": { variant: "default" as const, className: "bg-warning text-warning-foreground hover:bg-warning/80", icon: AlertTriangle },
+      "Amenaza": { variant: "default" as const, className: "bg-danger text-danger-foreground hover:bg-danger/80", icon: XCircle },
+      "Desconectado": { variant: "secondary" as const, className: "hover:bg-secondary/80", icon: WifiOff }
     };
 
     const config = securityConfig[status as SecurityStatus];
@@ -29,9 +29,9 @@ export function StatusBadge({ status, type }: StatusBadgeProps) {
 
   if (type === "alert") {
     const alertConfig = {
-      "Baja": { variant: "default" as const, className: "bg-success text-success-foreground" },
-      "Media": { variant: "default" as const, className: "bg-warning text-warning-foreground" },
-      "Alta": { variant: "default" as const, className: "bg-danger text-danger-foreground" }
+      "Baja": { variant: "default" as const, className: "bg-success text-success-foreground hover:bg-success/80" },
+      "Media": { variant: "default" as const, className: "bg-warning text-warning-foreground hover:bg-warning/80" },
+      "Alta": { variant: "default" as const, className: "bg-danger text-danger-foreground hover:bg-danger/80" }
     };
 
     const config = alertConfig[status as AlertLevel];
@@ -47,21 +47,21 @@ export function StatusBadge({ status, type }: StatusBadgeProps) {
     const connectionConfig = {
       "Conectado": {
         variant: "default" as const,
-        className: "bg-success text-success-foreground",
+        className: "bg-success text-success-foreground hover:bg-success/80",
         icon: Wifi,
         iconClassName: "",
         displayText: undefined as string | undefined
       },
       "Desconectado": {
         variant: "secondary" as const,
-        className: "",
+        className: "hover:bg-secondary/80",
         icon: WifiOff,
         iconClassName: "",
         displayText: undefined as string | undefined
       },
       "En sincronización": {
         variant: "default" as const,
-        className: "bg-primary text-primary-foreground",
+        className: "bg-primary text-primary-foreground hover:bg-primary/80",
         icon: Loader2,
         iconClassName: "animate-spin",
         displayText: "Sincronizando" as string | undefined

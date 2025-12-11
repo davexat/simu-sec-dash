@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockEquipment } from "@/data/mockData";
+import { useData } from "@/contexts/DataProvider";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, Play, Download, RefreshCw, AlertTriangle, Plus } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Equipment } from "@/types";
+import { useNavigate } from "react-router-dom";
 
 export default function Equipos() {
+  const { equipment } = useData();
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [equipoSeleccionado, setEquipoSeleccionado] = useState<string | null>(null);
   const [dialogAbierto, setDialogAbierto] = useState(false);
@@ -25,13 +27,12 @@ export default function Equipos() {
   const [progreso, setProgreso] = useState(0);
   const [claveAgente, setClaveAgente] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const equiposFiltrados = mockEquipment.filter(equipo => {
+  const equiposFiltrados = equipment.filter(equipo => {
     const cumpleFiltroEstado = filtroEstado === "todos" || equipo.estado_seguridad === filtroEstado;
     return cumpleFiltroEstado;
   });
-
-  const equiposActuales = mockEquipment.length;
 
   const getThreatDetails = (equipo: Equipment) => {
     if (equipo.estado_seguridad === "Amenaza") {
@@ -93,8 +94,13 @@ export default function Equipos() {
     }, 500);
   };
 
+  const aislarEquipo = (equipo: Equipment) => {
+    simularAccion("Aislamiento de red", equipo.nombre);
+    setDialogDetallesAbierto(false);
+  };
+
   const verDetalles = (equipoId: string) => {
-    const equipo = mockEquipment.find(e => e.id === equipoId);
+    const equipo = equipment.find(e => e.id === equipoId);
     if (equipo && (equipo.estado_seguridad === "Amenaza" || equipo.estado_seguridad === "Advertencia")) {
       setEquipoSeleccionado(equipoId);
       setDialogDetallesAbierto(true);
@@ -123,7 +129,7 @@ export default function Equipos() {
     setClaveAgente("");
   };
 
-  const equipoActual = mockEquipment.find(e => e.id === equipoSeleccionado);
+  const equipoActual = equipment.find(e => e.id === equipoSeleccionado);
 
   return (
     <DashboardLayout>
@@ -343,10 +349,21 @@ export default function Equipos() {
                   </div>
 
                   <div className="flex gap-2 pt-4 border-t">
-                    <Button variant="destructive" className="flex-1">
+                    <Button
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={() => aislarEquipo(equipoActual)}
+                    >
                       Aislar Equipo
                     </Button>
-                    <Button variant="default" className="flex-1">
+                    <Button
+                      variant="default"
+                      className="flex-1"
+                      onClick={() => {
+                        setDialogDetallesAbierto(false);
+                        navigate("/respaldos");
+                      }}
+                    >
                       Ir a Respaldos
                     </Button>
                   </div>

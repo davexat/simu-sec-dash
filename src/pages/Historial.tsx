@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockIncidents } from "@/data/mockData";
@@ -11,15 +11,31 @@ import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
 export default function Historial() {
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [filtroPeriodo, setFiltroPeriodo] = useState<string>("30");
+  const [incidentes, setIncidentes] = useState<Incident[]>(mockIncidents);
 
-  const incidentesFiltrados = mockIncidents.filter(incidente => {
+  // Requirement: Static incident created on reload
+  useEffect(() => {
+    const staticIncident: Incident = {
+      id: `INC-${Math.floor(Math.random() * 1000)}`,
+      fecha: new Date().toISOString(),
+      equipo_id: "EQ-003",
+      equipo_nombre: "PC-Ventas-1",
+      tipo: "Acceso Intrusivo",
+      descripcion: "Intento de acceso remoto detectado al inicio de sesión",
+      acciones: ["IP bloqueada", "Alerta generada"],
+      estado: "Mitigado"
+    };
+    setIncidentes(prev => [staticIncident, ...prev]);
+  }, []);
+
+  const incidentesFiltrados = incidentes.filter(incidente => {
     const cumpleFiltroEstado = filtroEstado === "todos" || incidente.estado === filtroEstado;
-    
+
     const fechaIncidente = new Date(incidente.fecha);
     const fechaLimite = new Date();
     fechaLimite.setDate(fechaLimite.getDate() - parseInt(filtroPeriodo));
     const cumpleFiltroPeriodo = fechaIncidente >= fechaLimite;
-    
+
     return cumpleFiltroEstado && cumpleFiltroPeriodo;
   });
 

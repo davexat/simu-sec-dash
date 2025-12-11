@@ -1,23 +1,25 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockEquipment, mockAlerts } from "@/data/mockData";
+import { useData } from "@/contexts/DataProvider";
 import { Shield, AlertTriangle, HardDrive, Activity } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { mockEquipment } from "@/data/mockData";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { equipment, alerts } = useData();
 
-  const seguros = mockEquipment.filter(e => e.estado_seguridad === "Seguro").length;
-  const enRiesgo = mockEquipment.filter(e => e.estado_seguridad === "Advertencia").length;
-  const amenazados = mockEquipment.filter(e => e.estado_seguridad === "Amenaza").length;
-  const alertasActivas = mockAlerts.filter(a => a.estado === "Activa").length;
+  const seguros = equipment.filter(e => e.estado_seguridad === "Seguro").length;
+  const enRiesgo = equipment.filter(e => e.estado_seguridad === "Advertencia").length;
+  const amenazados = equipment.filter(e => e.estado_seguridad === "Amenaza").length;
+  const alertasActivas = alerts.filter(a => a.estado === "Activa").length;
 
-  const porcentajeSeguro = Math.round((seguros / mockEquipment.length) * 100);
-  const porcentajeRiesgo = Math.round((enRiesgo / mockEquipment.length) * 100);
-  const porcentajeAmenaza = Math.round((amenazados / mockEquipment.length) * 100);
+  const porcentajeSeguro = Math.round((seguros / equipment.length) * 100);
+  const porcentajeRiesgo = Math.round((enRiesgo / equipment.length) * 100);
+  const porcentajeAmenaza = Math.round((amenazados / equipment.length) * 100);
 
   return (
     <DashboardLayout>
@@ -35,7 +37,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{porcentajeSeguro}%</div>
-              <p className="text-xs text-muted-foreground">{seguros} de {mockEquipment.length} equipos</p>
+              <p className="text-xs text-muted-foreground">{seguros} de {equipment.length} equipos</p>
             </CardContent>
           </Card>
 
@@ -89,7 +91,7 @@ export default function Dashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockEquipment.map((equipo) => (
+                {equipment.map((equipo) => (
                   <TableRow key={equipo.id}>
                     <TableCell className="font-medium">{equipo.nombre}</TableCell>
                     <TableCell>{equipo.usuario}</TableCell>
@@ -112,7 +114,7 @@ export default function Dashboard() {
         {alertasActivas > 0 && (
           <div className="space-y-4">
             {/* Amenazas Críticas */}
-            {mockAlerts.filter(a => a.estado === "Activa" && a.nivel === "Alta").length > 0 && (
+            {alerts.filter(a => a.estado === "Activa" && a.nivel === "Alta").length > 0 && (
               <Card className="border-danger">
                 <CardHeader>
                   <CardTitle className="text-danger">Amenazas Críticas</CardTitle>
@@ -120,7 +122,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {mockAlerts.filter(a => a.estado === "Activa" && a.nivel === "Alta").map((alerta) => (
+                    {alerts.filter(a => a.estado === "Activa" && a.nivel === "Alta").map((alerta) => (
                       <div key={alerta.id} className="p-3 bg-muted rounded-lg flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -140,7 +142,7 @@ export default function Dashboard() {
             )}
 
             {/* Advertencias Informativas */}
-            {mockAlerts.filter(a => a.estado === "Activa" && (a.nivel === "Media" || a.nivel === "Baja")).length > 0 && (
+            {alerts.filter(a => a.estado === "Activa" && (a.nivel === "Media" || a.nivel === "Baja")).length > 0 && (
               <Card className="border-warning">
                 <CardHeader>
                   <CardTitle className="text-warning">Advertencias Informativas</CardTitle>
@@ -148,7 +150,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {mockAlerts.filter(a => a.estado === "Activa" && (a.nivel === "Media" || a.nivel === "Baja")).map((alerta) => (
+                    {alerts.filter(a => a.estado === "Activa" && (a.nivel === "Media" || a.nivel === "Baja")).map((alerta) => (
                       <div key={alerta.id} className="p-3 bg-muted rounded-lg flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">

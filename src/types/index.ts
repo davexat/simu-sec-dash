@@ -23,7 +23,7 @@ export interface Alert {
   equipo_nombre: string;
   descripcion: string;
   recomendacion: string;
-  estado: "Activa" | "Resuelta";
+  estado: "Activa" | "Resuelta" | "Falso Positivo";
 }
 
 export interface Incident {
