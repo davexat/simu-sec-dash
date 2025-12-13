@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { HardDrive, CheckCircle, Clock, XCircle, Download, File, RefreshCw } from "lucide-react";
+import { HardDrive, CheckCircle, Clock, XCircle, Download, File, RefreshCw, Save } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useData } from "@/contexts/DataProvider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Backup } from "@/types";
 
@@ -20,9 +21,10 @@ export default function Respaldos() {
   const [progreso, setProgreso] = useState(0);
   const [archivosSeleccionados, setArchivosSeleccionados] = useState<string[]>([]);
   const { toast } = useToast();
+  const { backups, addBackup } = useData();
 
-  const verificados = mockBackups.filter(b => b.integridad === "Verificado").length;
-  const pendientes = mockBackups.filter(b => b.integridad === "Pendiente").length;
+  const verificados = backups.filter(b => b.integridad === "Verificado").length;
+  const pendientes = backups.filter(b => b.integridad === "Pendiente").length;
 
   const getVersiones = (backup: Backup) => {
     const baseDate = new Date(backup.fecha);
@@ -158,11 +160,28 @@ export default function Respaldos() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Gestión de Respaldos</h1>
-          <p className="text-muted-foreground">
-            Administre copias de seguridad automáticas y restaure información cuando sea necesario
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Gestión de Respaldos</h1>
+            <p className="text-muted-foreground">
+              Administre copias de seguridad automáticas y restaure información cuando sea necesario
+            </p>
+          </div>
+          <Button onClick={() => {
+            const newBackup: Backup = {
+              id: `BKP-${Date.now()}`,
+              equipo_id: "EQ-MANUAL",
+              equipo_nombre: "Manual-Backup",
+              fecha: new Date().toISOString(),
+              tamaño: "1.2 GB",
+              integridad: "Verificado"
+            };
+            addBackup(newBackup);
+            toast({ title: "Respaldo Iniciado", description: "El respaldo manual se ha puesto en cola" });
+          }}>
+            <Save className="mr-2 h-4 w-4" />
+            Realizar Respaldo
+          </Button>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -195,7 +214,7 @@ export default function Respaldos() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {mockBackups.reduce((acc, b) => acc + parseInt(b.tamaño), 0)} GB
+                {backups.reduce((acc, b) => acc + parseInt(b.tamaño), 0)} GB
               </div>
               <p className="text-xs text-muted-foreground">Espacio utilizado</p>
             </CardContent>
@@ -222,7 +241,7 @@ export default function Respaldos() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockBackups.map((backup) => (
+                {backups.map((backup) => (
                   <TableRow key={backup.id}>
                     <TableCell className="font-mono text-xs">{backup.id}</TableCell>
                     <TableCell className="font-medium">{backup.equipo_nombre}</TableCell>

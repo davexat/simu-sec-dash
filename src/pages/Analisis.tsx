@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Activity, AlertTriangle, TrendingUp, Globe } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useData } from "@/contexts/DataProvider";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
 
 const datosConexiones = [
@@ -24,6 +25,7 @@ const datosTrafico = [
 
 export default function Analisis() {
   const { user } = useAuth();
+  const { alerts } = useData();
 
   if (user?.rol !== "Administrador") {
     return (
@@ -106,34 +108,34 @@ export default function Analisis() {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={datosConexiones}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis 
-                  dataKey="hora" 
+                <XAxis
+                  dataKey="hora"
                   tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  className="text-xs" 
+                  className="text-xs"
                 />
-                <YAxis 
+                <YAxis
                   tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  className="text-xs" 
+                  className="text-xs"
                 />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--background))', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--background))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '6px'
                   }}
                 />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="conexiones" 
-                  stroke="hsl(var(--primary))" 
+                <Line
+                  type="monotone"
+                  dataKey="conexiones"
+                  stroke="hsl(var(--primary))"
                   strokeWidth={2}
                   name="Conexiones Totales"
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="sospechosas" 
-                  stroke="hsl(var(--destructive))" 
+                <Line
+                  type="monotone"
+                  dataKey="sospechosas"
+                  stroke="hsl(var(--destructive))"
                   strokeWidth={2}
                   name="Sospechosas"
                 />
@@ -151,24 +153,24 @@ export default function Analisis() {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={datosTrafico}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis 
-                  dataKey="equipo" 
+                <XAxis
+                  dataKey="equipo"
                   tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  className="text-xs" 
+                  className="text-xs"
                 />
-                <YAxis 
+                <YAxis
                   tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  className="text-xs" 
+                  className="text-xs"
                 />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--background))', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--background))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '6px'
                   }}
                 />
-                <Bar 
-                  dataKey="trafico" 
+                <Bar
+                  dataKey="trafico"
                   fill="hsl(var(--primary))"
                   name="Tráfico (GB)"
                   radius={[8, 8, 0, 0]}
@@ -187,6 +189,24 @@ export default function Analisis() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {alerts.filter(a => a.nivel === "Alta" || a.nivel === "Media").map((alert) => (
+                <div key={alert.id} className={`flex items-start justify-between p-4 border rounded-lg ${alert.nivel === "Alta" ? "border-destructive bg-destructive/5" : "border-warning bg-warning/5"}`}>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      {alert.nivel === "Alta" ? <AlertTriangle className="h-4 w-4 text-destructive" /> : <Globe className="h-4 w-4 text-warning" />}
+                      <span className="font-medium">{alert.nivel === "Alta" ? "Amenaza Crítica Detectada" : "Alerta de Seguridad"}</span>
+                      <Badge className={alert.nivel === "Alta" ? "bg-destructive text-destructive-foreground" : "bg-warning text-warning-foreground"}>{alert.nivel}</Badge>
+                    </div>
+                    <p className="text-sm mb-2">
+                      {alert.descripcion}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>Equipo: {alert.equipo_nombre}</span>
+                      <span>{new Date(alert.fecha).toLocaleTimeString()}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
               <div className="flex items-start justify-between p-4 border rounded-lg border-warning">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">

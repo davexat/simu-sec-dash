@@ -122,7 +122,7 @@ export const mockAlerts: Alert[] = [
 export const mockIncidents: Incident[] = [
   {
     id: "INC-001",
-    fecha: "2025-11-10T14:30:00",
+    fecha: "2025-12-10T14:30:00",
     equipo_id: "EQ-003",
     equipo_nombre: "PC-Ventas-1",
     tipo: "Malware detectado",
@@ -132,7 +132,7 @@ export const mockIncidents: Incident[] = [
   },
   {
     id: "INC-002",
-    fecha: "2025-11-08T10:15:00",
+    fecha: "2025-12-08T10:15:00",
     equipo_id: "EQ-004",
     equipo_nombre: "LAP-Admin",
     descripcion: "Pérdida de conexión prolongada del agente",
@@ -142,7 +142,7 @@ export const mockIncidents: Incident[] = [
   },
   {
     id: "INC-003",
-    fecha: "2025-11-05T16:45:00",
+    fecha: "2025-12-05T16:45:00",
     equipo_id: "EQ-002",
     equipo_nombre: "SERV-FACT",
     tipo: "Acceso no autorizado",
@@ -152,7 +152,7 @@ export const mockIncidents: Incident[] = [
   },
   {
     id: "INC-004",
-    fecha: "2025-10-28T09:20:00",
+    fecha: "2025-11-28T09:20:00",
     equipo_id: "EQ-006",
     equipo_nombre: "POS-Tienda1",
     tipo: "Software no autorizado",
@@ -162,7 +162,7 @@ export const mockIncidents: Incident[] = [
   },
   {
     id: "INC-005",
-    fecha: "2025-10-22T13:50:00",
+    fecha: "2025-11-22T13:50:00",
     equipo_id: "EQ-001",
     equipo_nombre: "PC-Contabilidad",
     tipo: "Phishing",

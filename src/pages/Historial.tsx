@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockIncidents } from "@/data/mockData";
@@ -6,27 +6,15 @@ import { Incident, IncidentStatus } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, ChevronDown } from "lucide-react";
+import { useData } from "@/contexts/DataProvider";
+import { Button } from "@/components/ui/button";
 
 export default function Historial() {
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [filtroPeriodo, setFiltroPeriodo] = useState<string>("30");
-  const [incidentes, setIncidentes] = useState<Incident[]>(mockIncidents);
-
-  // Requirement: Static incident created on reload
-  useEffect(() => {
-    const staticIncident: Incident = {
-      id: `INC-${Math.floor(Math.random() * 1000)}`,
-      fecha: new Date().toISOString(),
-      equipo_id: "EQ-003",
-      equipo_nombre: "PC-Ventas-1",
-      tipo: "Acceso Intrusivo",
-      descripcion: "Intento de acceso remoto detectado al inicio de sesión",
-      acciones: ["IP bloqueada", "Alerta generada"],
-      estado: "Mitigado"
-    };
-    setIncidentes(prev => [staticIncident, ...prev]);
-  }, []);
+  const [visibleCount, setVisibleCount] = useState(5); // Pagination limit
+  const { incidents: incidentes } = useData();
 
   const incidentesFiltrados = incidentes.filter(incidente => {
     const cumpleFiltroEstado = filtroEstado === "todos" || incidente.estado === filtroEstado;
@@ -204,13 +192,14 @@ export default function Historial() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {incidentesFiltrados.map((incidente, index) => (
+
+              {incidentesFiltrados.slice(0, visibleCount).map((incidente, index) => (
                 <div key={incidente.id} className="flex gap-4">
                   <div className="flex flex-col items-center">
                     <div className="rounded-full p-2 bg-primary/10">
                       {getStatusIcon(incidente.estado)}
                     </div>
-                    {index < incidentesFiltrados.length - 1 && (
+                    {index < visibleCount - 1 && index < incidentesFiltrados.length - 1 && (
                       <div className="w-px h-full bg-border mt-2" />
                     )}
                   </div>
@@ -236,6 +225,15 @@ export default function Historial() {
                   </div>
                 </div>
               ))}
+
+              {visibleCount < incidentesFiltrados.length && (
+                <div className="flex justify-center pt-4">
+                  <Button variant="outline" onClick={() => setVisibleCount(prev => prev + 5)}>
+                    <ChevronDown className="mr-2 h-4 w-4" />
+                    Cargar más antiguos
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

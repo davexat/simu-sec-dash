@@ -2,19 +2,24 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { collection, query, where, onSnapshot, addDoc, updateDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
-import { Alert, Equipment } from "@/types";
-import { mockAlerts, mockEquipment, SIMULATED_EQUIPMENT_ID } from "@/data/mockData";
+import { Alert, Equipment, Incident, Backup } from "@/types";
+import { mockAlerts, mockEquipment, mockIncidents, mockBackups, SIMULATED_EQUIPMENT_ID } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
 
 interface DataContextType {
     alerts: Alert[];
     equipment: Equipment[];
     resolvedAlerts: Alert[];
+    incidents: Incident[]; // New
+    backups: Backup[]; // New
     addSimulatedAlert: (type: string, description: string, level: "Alta" | "Media" | "Baja") => Promise<void>;
+    addIncident: (incident: Incident) => void; // New
+    addBackup: (backup: Backup) => void; // New
     resolveAlert: (id: string, falsePositive?: boolean) => Promise<void>;
     requestHelp: (alert: Alert) => void;
     getEquipmentStatus: (id: string) => "Seguro" | "Advertencia" | "Amenaza" | "Desconectado";
 }
+
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
@@ -33,6 +38,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // IDs de alertas estáticas resueltas
     const [resolvedStaticIds, setResolvedStaticIds] = useState<string[]>([]);
+
+    // Historial de Incidentes y Respaldos
+    const [incidents, setIncidents] = useState<Incident[]>(mockIncidents);
+    const [backups, setBackups] = useState<Backup[]>(mockBackups);
 
     // Combinar alertas activas (estáticas no resueltas + dinámicas activas)
     const activeAlerts = [
@@ -132,6 +141,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     estado: falsePositive ? "Falso Positivo" : "Resuelta"
                 }]);
 
+                // Crear Incidente de resolución
+                const incident: Incident = {
+                    id: `INC-${id}-${Date.now()}`,
+                    fecha: new Date().toISOString(),
+                    equipo_id: dynamicAlert.equipo_id,
+                    equipo_nombre: dynamicAlert.equipo_nombre,
+                    tipo: dynamicAlert.nivel === "Alta" ? "Amenaza Crítica" : "Alerta de Seguridad",
+                    descripcion: dynamicAlert.descripcion,
+                    acciones: ["Marcada como resuelta", falsePositive ? "Falso positivo confirmado" : "Mitigación aplicada"],
+                    estado: "Resuelto"
+                };
+                addIncident(incident);
+
                 toast({
                     title: falsePositive ? "Marcado como Falso Positivo" : "Alerta Resuelta",
                     description: "Estado actualizado en base de datos."
@@ -151,6 +173,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 ...staticAlert,
                 estado: falsePositive ? "Falso Positivo" : "Resuelta"
             }]);
+
+            // Crear Incidente de resolución
+            const incident: Incident = {
+                id: `INC-${id}-${Date.now()}`,
+                fecha: new Date().toISOString(),
+                equipo_id: staticAlert.equipo_id,
+                equipo_nombre: staticAlert.equipo_nombre,
+                tipo: staticAlert.nivel === "Alta" ? "Amenaza Crítica" : "Alerta de Seguridad",
+                descripcion: staticAlert.descripcion,
+                acciones: ["Marcada como resuelta", falsePositive ? "Falso positivo confirmado" : "Mitigación aplicada"],
+                estado: "Resuelto"
+            };
+            addIncident(incident);
 
             toast({
                 title: "Alerta Resuelta",
@@ -187,12 +222,42 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         estado_seguridad: getEquipmentStatus(eq.id)
     }));
 
+    const addIncident = (incident: Incident) => {
+        setIncidents(prev => [incident, ...prev]);
+        toast({
+            title: "Incidente Registrado",
+            description: `Nuevo incidente: ${incident.tipo}`,
+        });
+    };
+
+    const addBackup = (backup: Backup) => {
+        setBackups(prev => [backup, ...prev]);
+        // Also add logic to add an incident or log entry if desired, 
+        // but user asked for "backups registered in history".
+        // So we can auto-add a history entry when a backup is done.
+        const backupIncident: Incident = {
+            id: `INC-BKP-${Date.now()}`,
+            fecha: new Date().toISOString(),
+            equipo_id: backup.equipo_id,
+            equipo_nombre: backup.equipo_nombre,
+            tipo: "Respaldo Realizado",
+            descripcion: `Respaldo manual completado. Tamaño: ${backup.tamaño}`,
+            acciones: ["Respaldo guardado", "Verificación integridad"],
+            estado: "Resuelto"
+        };
+        addIncident(backupIncident);
+    };
+
     return (
         <DataContext.Provider value={{
             alerts: activeAlerts,
             equipment: equipmentWithStatus,
             resolvedAlerts,
+            incidents,
+            backups,
             addSimulatedAlert,
+            addIncident,
+            addBackup,
             resolveAlert,
             requestHelp,
             getEquipmentStatus

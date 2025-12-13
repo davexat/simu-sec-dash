@@ -11,7 +11,7 @@ import { useData } from "@/contexts/DataProvider";
 export default function Reportes() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { equipment, alerts, resolvedAlerts } = useData();
+  const { equipment, alerts, resolvedAlerts, incidents } = useData();
 
   if (user?.rol !== "Administrador") {
     return (
@@ -56,7 +56,7 @@ export default function Reportes() {
   const alertasActivas = alerts.filter(a => a.estado === "Activa").length;
 
   // Total de alertas resueltas en esta sesión + incidentes históricos resueltos
-  const totalResueltos = resolvedAlerts.length + mockIncidents.filter(i => i.estado === "Resuelto").length;
+  const totalResueltos = resolvedAlerts.length + incidents.filter(i => i.estado === "Resuelto").length;
 
   return (
     <DashboardLayout>
@@ -200,9 +200,9 @@ export default function Reportes() {
                   <AlertTriangle className="h-5 w-5 text-warning" />
                   <p className="font-medium">Incidentes Totales</p>
                 </div>
-                <p className="text-2xl font-bold mb-1">{mockIncidents.length}</p>
+                <p className="text-2xl font-bold mb-1">{incidents.length}</p>
                 <p className="text-sm text-muted-foreground">
-                  {totalResueltos} resueltos, {mockIncidents.length + alertasActivas - totalResueltos} pendientes
+                  {totalResueltos} resueltos, {incidents.length + alertasActivas - totalResueltos} pendientes
                 </p>
               </div>
               <div>

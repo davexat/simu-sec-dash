@@ -3,7 +3,7 @@ import styles from "@/styles/desktop.module.css";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Gamepad2, Loader2, ShieldAlert, CheckCircle, User, Lock, ArrowRight } from "lucide-react";
+import { Gamepad2, Loader2, ShieldAlert, CheckCircle, User, Lock, ArrowRight, FileWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { checkPolicy } from "@/services/policyService";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ export default function DesktopSimulator() {
     const [loading, setLoading] = useState(false);
     const [modalState, setModalState] = useState<"none" | "blocked" | "success">("none");
     const { toast } = useToast();
-    const { addSimulatedAlert } = useData();
+    const { addSimulatedAlert, addIncident } = useData();
     const { user, login } = useAuth();
 
     // Login State
@@ -94,6 +94,60 @@ export default function DesktopSimulator() {
         }
     };
 
+    const handleExfiltrationClick = async () => {
+        setLoading(true);
+        try {
+            // Check POL-003 (Restrict external connections)
+            const result = await checkPolicy("POL-003", SIMULATED_EQUIPMENT_ID);
+
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            if (!result.allowed) {
+                // Blocked (Good!)
+                setModalState("blocked");
+                toast({
+                    title: "Conexión Bloqueada",
+                    description: "El firewall bloqueó un intento de exfiltración de datos.",
+                });
+                // Log a mitigated incident/low alert
+                await addSimulatedAlert(
+                    "exfiltration_blocked",
+                    "Intento de conexión a servidor externo sospechoso bloqueado.",
+                    "Baja"
+                );
+            } else {
+                // Allowed (Bad - Attack Successful!)
+                // Trigger SEVERE alert
+                await addSimulatedAlert(
+                    "data_exfiltration",
+                    "URGENTE: Se ha detectado una exfiltración masiva de datos hacia una IP desconocida. La política de restricción de red está inactiva.",
+                    "Alta"
+                );
+
+                addIncident({
+                    id: `INC-EXFIL-${Date.now()}`,
+                    fecha: new Date().toISOString(),
+                    equipo_id: SIMULATED_EQUIPMENT_ID,
+                    equipo_nombre: simulatedEquipment?.nombre || "Unknown",
+                    tipo: "Exfiltración de Datos",
+                    descripcion: "Transferencia de archivos sensibles detectada hacia destino no confiable.",
+                    acciones: ["Alerta generada", "Notificación a admin"],
+                    estado: "En investigación"
+                });
+
+                toast({
+                    title: "¡ALERTA DE SEGURIDAD!",
+                    description: "Actividad maliciosa detectada. Revise las alertas inmediatamente.",
+                    variant: "destructive"
+                });
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const closeModal = () => setModalState("none");
 
     if (!user) {
@@ -166,6 +220,21 @@ export default function DesktopSimulator() {
                         </div>
                         <span className={styles.iconLabel}>Reporte.docx</span>
                     </div>
+                    {/* Severe Threat Icon */}
+                    <button
+                        className={styles.desktopIcon}
+                        onClick={handleExfiltrationClick}
+                        disabled={loading}
+                    >
+                        <div className={styles.iconWrapper}>
+                            {loading ? (
+                                <Loader2 className="h-8 w-8 animate-spin text-white" />
+                            ) : (
+                                <FileWarning className="h-10 w-10 text-red-500" />
+                            )}
+                        </div>
+                        <span className={styles.iconLabel}>Factura_Urgente.pdf.exe</span>
+                    </button>
                 </div>
 
                 {/* Taskbar */}
