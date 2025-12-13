@@ -31,7 +31,7 @@ export const mockEquipment: Equipment[] = [
     OS: "Windows 11",
     ultimo_respaldo: "2025-11-09T12:00:00",
     estado_seguridad: "Amenaza",
-    version_agente: "1.1.9",
+    version_agente: "1.2.3",
     estado_conexion_agente: "Conectado"
   },
   {
@@ -61,7 +61,7 @@ export const mockEquipment: Equipment[] = [
     OS: "Windows 10",
     ultimo_respaldo: "2025-11-12T06:10:00",
     estado_seguridad: "Advertencia",
-    version_agente: "1.2.0",
+    version_agente: "1.2.3",
     estado_conexion_agente: "Conectado"
   },
   {

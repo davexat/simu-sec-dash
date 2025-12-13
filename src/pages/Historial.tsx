@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockIncidents } from "@/data/mockData";
 import { Incident, IncidentStatus } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -49,9 +48,9 @@ export default function Historial() {
     }
   };
 
-  const resueltos = mockIncidents.filter(i => i.estado === "Resuelto").length;
-  const mitigados = mockIncidents.filter(i => i.estado === "Mitigado").length;
-  const enInvestigacion = mockIncidents.filter(i => i.estado === "En investigación").length;
+  const resueltos = incidentes.filter(i => i.estado === "Resuelto").length;
+  const mitigados = incidentes.filter(i => i.estado === "Mitigado").length;
+  const enInvestigacion = incidentes.filter(i => i.estado === "En investigación").length;
 
   return (
     <DashboardLayout>

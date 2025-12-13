@@ -1,7 +1,7 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, AlertTriangle, TrendingUp, Globe } from "lucide-react";
+import { Activity, AlertTriangle, TrendingUp, Globe, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataProvider";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
@@ -207,59 +207,14 @@ export default function Analisis() {
                   </div>
                 </div>
               ))}
-              <div className="flex items-start justify-between p-4 border rounded-lg border-warning">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Globe className="h-4 w-4 text-warning" />
-                    <span className="font-medium">Conexión a IP sospechosa</span>
-                    <Badge className="bg-warning/10 text-warning">Media</Badge>
-                  </div>
-                  <p className="text-sm mb-2">
-                    El equipo PC-Ventas-1 intentó conectarse a 185.220.101.45, una IP asociada con actividad maliciosa conocida.
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span>Origen: PC-Ventas-1 (192.168.1.103)</span>
-                    <span>Destino: 185.220.101.45:443</span>
-                    <span>Protocolo: HTTPS</span>
-                  </div>
-                </div>
-              </div>
 
-              <div className="flex items-start justify-between p-4 border rounded-lg border-warning">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Globe className="h-4 w-4 text-warning" />
-                    <span className="font-medium">Dominio no confiable</span>
-                    <Badge className="bg-warning/10 text-warning">Media</Badge>
-                  </div>
-                  <p className="text-sm mb-2">
-                    SERV-FACT intentó acceder a un dominio recientemente registrado sin historial de confianza.
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span>Origen: SERV-FACT</span>
-                    <span>Destino: suspicious-domain-2024.xyz</span>
-                    <span>Bloqueado automáticamente</span>
-                  </div>
+              {alerts.filter(a => a.nivel === "Alta" || a.nivel === "Media").length === 0 && (
+                <div className="flex flex-col items-center justify-center p-8 text-center">
+                  <Shield className="h-12 w-12 text-muted-foreground mb-3" />
+                  <p className="text-sm font-medium">No hay conexiones sospechosas detectadas</p>
+                  <p className="text-xs text-muted-foreground mt-1">El sistema está monitoreando activamente la red</p>
                 </div>
-              </div>
-
-              <div className="flex items-start justify-between p-4 border rounded-lg border-primary">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                    <span className="font-medium">Pico de tráfico inusual</span>
-                    <Badge className="bg-primary/10 text-primary">Baja</Badge>
-                  </div>
-                  <p className="text-sm mb-2">
-                    DB-Clientes registró un aumento del 340% en tráfico saliente entre las 03:00 y 04:00 AM.
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span>Equipo: DB-Clientes</span>
-                    <span>Volumen: 2.4 GB transferidos</span>
-                    <span>Hora: 03:15 - 04:00</span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -292,7 +247,7 @@ export default function Analisis() {
             </ul>
           </CardContent>
         </Card>
-      </div>
-    </DashboardLayout>
+      </div >
+    </DashboardLayout >
   );
 }

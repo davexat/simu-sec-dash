@@ -3,7 +3,7 @@ import styles from "@/styles/desktop.module.css";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Gamepad2, Loader2, ShieldAlert, CheckCircle, User, Lock, ArrowRight, FileWarning } from "lucide-react";
+import { Gamepad2, Loader2, ShieldAlert, CheckCircle, User, FileWarning, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { checkPolicy } from "@/services/policyService";
 import { cn } from "@/lib/utils";
@@ -12,15 +12,15 @@ import { useData } from "@/contexts/DataProvider";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function DesktopSimulator() {
-    const [loading, setLoading] = useState(false);
-    const [modalState, setModalState] = useState<"none" | "blocked" | "success">("none");
+    const [loadingInstaller, setLoadingInstaller] = useState(false);
+    const [loadingExfiltration, setLoadingExfiltration] = useState(false);
+    const [modalState, setModalState] = useState<"none" | "blocked" | "success" | "severe">("none");
     const { toast } = useToast();
     const { addSimulatedAlert, addIncident } = useData();
     const { user, login } = useAuth();
 
     // Login State
     const [loginUsername, setLoginUsername] = useState("");
-    const [loginPassword, setLoginPassword] = useState("");
     const [loginLoading, setLoginLoading] = useState(false);
 
     // Obtener el equipo simulado
@@ -37,23 +37,13 @@ export default function DesktopSimulator() {
             return;
         }
         setLoginLoading(true);
-        // Reuse the same hardcoded password
-        if (loginPassword === "3Mp10.tst3") {
-            await login(loginUsername.trim()); // Login with custom username
-            setLoginUsername("");
-            setLoginPassword("");
-        } else {
-            toast({
-                title: "Error de acceso",
-                description: "Contraseña incorrecta",
-                variant: "destructive"
-            });
-        }
+        await login(loginUsername.trim());
+        setLoginUsername("");
         setLoginLoading(false);
     };
 
     const handleInstallClick = async () => {
-        setLoading(true);
+        setLoadingInstaller(true);
         try {
             // Verificar la política POL-004 (Limitar instalaciones) para este equipo específico
             const result = await checkPolicy("POL-004", SIMULATED_EQUIPMENT_ID);
@@ -73,7 +63,8 @@ export default function DesktopSimulator() {
                 await addSimulatedAlert(
                     "install_blocked",
                     "Intento de instalación de software no autorizado bloqueado por política.",
-                    "Media"
+                    "Media",
+                    "Contactar al usuario para verificar la legitimidad de 'Instalador_Juego.exe'. Si es legítimo, crear una excepción en la política POL-004."
                 );
 
                 toast({
@@ -90,12 +81,12 @@ export default function DesktopSimulator() {
                 variant: "destructive"
             });
         } finally {
-            setLoading(false);
+            setLoadingInstaller(false);
         }
     };
 
     const handleExfiltrationClick = async () => {
-        setLoading(true);
+        setLoadingExfiltration(true);
         try {
             // Check POL-003 (Restrict external connections)
             const result = await checkPolicy("POL-003", SIMULATED_EQUIPMENT_ID);
@@ -113,7 +104,8 @@ export default function DesktopSimulator() {
                 await addSimulatedAlert(
                     "exfiltration_blocked",
                     "Intento de conexión a servidor externo sospechoso bloqueado.",
-                    "Baja"
+                    "Baja",
+                    "Revisar logs del firewall para confirmar que no hubo fuga de datos. Monitorear actividad del proceso bloqueado."
                 );
             } else {
                 // Allowed (Bad - Attack Successful!)
@@ -121,11 +113,12 @@ export default function DesktopSimulator() {
                 await addSimulatedAlert(
                     "data_exfiltration",
                     "URGENTE: Se ha detectado una exfiltración masiva de datos hacia una IP desconocida. La política de restricción de red está inactiva.",
-                    "Alta"
+                    "Alta",
+                    "AISLAR EQUIPO INMEDIATAMENTE. Activar política POL-003. Iniciar análisis forense para determinar el alcance de la fuga de datos."
                 );
 
                 addIncident({
-                    id: `INC-EXFIL-${Date.now()}`,
+                    id: `INC-EXFIL-${Math.floor(100 + Math.random() * 900)}`,
                     fecha: new Date().toISOString(),
                     equipo_id: SIMULATED_EQUIPMENT_ID,
                     equipo_nombre: simulatedEquipment?.nombre || "Unknown",
@@ -136,15 +129,18 @@ export default function DesktopSimulator() {
                 });
 
                 toast({
-                    title: "¡ALERTA DE SEGURIDAD!",
-                    description: "Actividad maliciosa detectada. Revise las alertas inmediatamente.",
+                    title: "¡EXFILTRACIÓN DE DATOS!",
+                    description: "Amenaza crítica detectada. Revise el modal de seguridad.",
                     variant: "destructive"
                 });
+
+                // Show severe threat modal
+                setModalState("severe");
             }
         } catch (error) {
             console.error(error);
         } finally {
-            setLoading(false);
+            setLoadingExfiltration(false);
         }
     };
 
@@ -174,16 +170,7 @@ export default function DesktopSimulator() {
                             />
                             <User className="absolute right-3 top-3 h-5 w-5 text-white/40" />
                         </div>
-                        <div className="relative">
-                            <Input
-                                type="password"
-                                placeholder="Contraseña"
-                                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 h-12 pl-4 pr-10"
-                                value={loginPassword}
-                                onChange={(e) => setLoginPassword(e.target.value)}
-                            />
-                            <Lock className="absolute right-3 top-3 h-5 w-5 text-white/40" />
-                        </div>
+
                         <Button type="submit" className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium" disabled={loginLoading}>
                             {loginLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Iniciar Sesión"}
                         </Button>
@@ -202,10 +189,10 @@ export default function DesktopSimulator() {
                     <button
                         className={styles.desktopIcon}
                         onClick={handleInstallClick}
-                        disabled={loading}
+                        disabled={loadingInstaller || loadingExfiltration}
                     >
                         <div className={styles.iconWrapper}>
-                            {loading ? (
+                            {loadingInstaller ? (
                                 <Loader2 className="h-8 w-8 animate-spin text-white" />
                             ) : (
                                 <Gamepad2 className="h-10 w-10 text-white" />
@@ -213,21 +200,14 @@ export default function DesktopSimulator() {
                         </div>
                         <span className={styles.iconLabel}>Instalador_Juego.exe</span>
                     </button>
-                    {/* Fake files for realism */}
-                    <div className={styles.desktopIcon}>
-                        <div className={styles.iconWrapper}>
-                            <div className="h-10 w-10 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-xs">DOC</div>
-                        </div>
-                        <span className={styles.iconLabel}>Reporte.docx</span>
-                    </div>
-                    {/* Severe Threat Icon */}
+                    {/* Severe Threat Icon aligned */}
                     <button
                         className={styles.desktopIcon}
                         onClick={handleExfiltrationClick}
-                        disabled={loading}
+                        disabled={loadingInstaller || loadingExfiltration}
                     >
                         <div className={styles.iconWrapper}>
-                            {loading ? (
+                            {loadingExfiltration ? (
                                 <Loader2 className="h-8 w-8 animate-spin text-white" />
                             ) : (
                                 <FileWarning className="h-10 w-10 text-red-500" />
@@ -301,6 +281,43 @@ export default function DesktopSimulator() {
                             </div>
                             <Button variant="default" className={styles.modalButton} onClick={closeModal}>
                                 Aceptar
+                            </Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Modal de Amenaza Severa - Exfiltración */}
+                <Dialog open={modalState === "severe"} onOpenChange={closeModal}>
+                    <DialogContent className="max-w-md border-destructive">
+                        <DialogHeader>
+                            <DialogTitle className="text-destructive flex items-center gap-2">
+                                <AlertTriangle className="h-5 w-5" />
+                                ¡EXFILTRACIÓN DE DATOS DETECTADA!
+                            </DialogTitle>
+                            <DialogDescription>
+                                Amenaza crítica de nivel ALTO
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className={styles.modalContent}>
+                            <ShieldAlert className="h-16 w-16 text-destructive" />
+                            <div className={styles.modalText}>
+                                <p className={cn(styles.modalTitle, "text-destructive")}>Transferencia No Autorizada</p>
+                                <p className={styles.modalDescription}>
+                                    Se detectó una exfiltración masiva de datos hacia una IP desconocida.
+                                    La política POL-003 (Restricción de conexiones externas) está INACTIVA.
+                                </p>
+                                <div className="mt-4 p-3 bg-destructive/10 rounded border border-destructive/20">
+                                    <p className="text-xs font-semibold mb-2">ACCIONES INMEDIATAS:</p>
+                                    <ol className="text-xs space-y-1 list-decimal list-inside">
+                                        <li>Aislar equipo de la red</li>
+                                        <li>Activar política POL-003</li>
+                                        <li>Revisar alertas en panel de Análisis</li>
+                                        <li>Iniciar análisis forense</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            <Button variant="destructive" className={styles.modalButton} onClick={closeModal}>
+                                Entendido - Ir a Alertas
                             </Button>
                         </div>
                     </DialogContent>

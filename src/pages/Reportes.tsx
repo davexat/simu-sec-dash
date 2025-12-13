@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Download, FileText, TrendingUp, AlertTriangle, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { mockIncidents } from "@/data/mockData";
 import { useData } from "@/contexts/DataProvider";
 
 export default function Reportes() {

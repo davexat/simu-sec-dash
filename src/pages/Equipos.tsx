@@ -17,7 +17,7 @@ import { Equipment } from "@/types";
 import { useNavigate } from "react-router-dom";
 
 export default function Equipos() {
-  const { equipment } = useData();
+  const { equipment, isolateEquipment, isEquipmentIsolated } = useData();
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [equipoSeleccionado, setEquipoSeleccionado] = useState<string | null>(null);
   const [dialogAbierto, setDialogAbierto] = useState(false);
@@ -95,13 +95,15 @@ export default function Equipos() {
   };
 
   const aislarEquipo = (equipo: Equipment) => {
+    isolateEquipment(equipo.id);
     simularAccion("Aislamiento de red", equipo.nombre);
     setDialogDetallesAbierto(false);
   };
 
   const verDetalles = (equipoId: string) => {
     const equipo = equipment.find(e => e.id === equipoId);
-    if (equipo && (equipo.estado_seguridad === "Amenaza" || equipo.estado_seguridad === "Advertencia")) {
+    // Only show threat dialog for actual threats (Amenaza status)
+    if (equipo && equipo.estado_seguridad === "Amenaza") {
       setEquipoSeleccionado(equipoId);
       setDialogDetallesAbierto(true);
     } else {
@@ -206,13 +208,18 @@ export default function Equipos() {
                       <Badge variant="outline">{equipo.version_agente}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => verDetalles(equipo.id)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => verDetalles(equipo.id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        {isEquipmentIsolated(equipo.id) && (
+                          <Badge variant="destructive" className="text-xs">Aislado</Badge>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -353,8 +360,9 @@ export default function Equipos() {
                       variant="destructive"
                       className="flex-1"
                       onClick={() => aislarEquipo(equipoActual)}
+                      disabled={isEquipmentIsolated(equipoActual.id)}
                     >
-                      Aislar Equipo
+                      {isEquipmentIsolated(equipoActual.id) ? "Equipo Aislado" : "Aislar Equipo"}
                     </Button>
                     <Button
                       variant="default"

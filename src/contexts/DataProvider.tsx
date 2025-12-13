@@ -12,9 +12,12 @@ interface DataContextType {
     resolvedAlerts: Alert[];
     incidents: Incident[]; // New
     backups: Backup[]; // New
-    addSimulatedAlert: (type: string, description: string, level: "Alta" | "Media" | "Baja") => Promise<void>;
+    isolatedEquipment: string[]; // New
+    addSimulatedAlert: (type: string, description: string, level: "Alta" | "Media" | "Baja", recommendation?: string) => Promise<void>;
     addIncident: (incident: Incident) => void; // New
     addBackup: (backup: Backup) => void; // New
+    isolateEquipment: (equipmentId: string) => void; // New
+    isEquipmentIsolated: (equipmentId: string) => boolean; // New
     resolveAlert: (id: string, falsePositive?: boolean) => Promise<void>;
     requestHelp: (alert: Alert) => void;
     getEquipmentStatus: (id: string) => "Seguro" | "Advertencia" | "Amenaza" | "Desconectado";
@@ -42,6 +45,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Historial de Incidentes y Respaldos
     const [incidents, setIncidents] = useState<Incident[]>(mockIncidents);
     const [backups, setBackups] = useState<Backup[]>(mockBackups);
+    const [isolatedEquipment, setIsolatedEquipment] = useState<string[]>([]);
 
     // Combinar alertas activas (estáticas no resueltas + dinámicas activas)
     const activeAlerts = [
@@ -83,7 +87,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [user]);
 
     // Agregar alerta dinámica (desde simulador)
-    const addSimulatedAlert = async (type: string, description: string, level: "Alta" | "Media" | "Baja") => {
+    const addSimulatedAlert = async (type: string, description: string, level: "Alta" | "Media" | "Baja", recommendation?: string) => {
         if (!user) {
             toast({
                 title: "Error",
@@ -103,7 +107,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 equipmentName: "POS-Tienda1",
                 timestamp: new Date(),
                 status: "active",
-                recommendation: "Verificar actividad en el equipo simulado."
+                recommendation: recommendation || "Verificar actividad en el equipo simulado."
             });
 
             toast({
@@ -143,7 +147,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 // Crear Incidente de resolución
                 const incident: Incident = {
-                    id: `INC-${id}-${Date.now()}`,
+                    id: `INC-${Math.floor(100 + Math.random() * 900)}`, // Standard short format
                     fecha: new Date().toISOString(),
                     equipo_id: dynamicAlert.equipo_id,
                     equipo_nombre: dynamicAlert.equipo_nombre,
@@ -176,7 +180,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Crear Incidente de resolución
             const incident: Incident = {
-                id: `INC-${id}-${Date.now()}`,
+                id: `INC-${Math.floor(100 + Math.random() * 900)}`, // Standard short format
                 fecha: new Date().toISOString(),
                 equipo_id: staticAlert.equipo_id,
                 equipo_nombre: staticAlert.equipo_nombre,
@@ -236,7 +240,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // but user asked for "backups registered in history".
         // So we can auto-add a history entry when a backup is done.
         const backupIncident: Incident = {
-            id: `INC-BKP-${Date.now()}`,
+            id: `INC-BKP-${Math.floor(100 + Math.random() * 900)}`,
             fecha: new Date().toISOString(),
             equipo_id: backup.equipo_id,
             equipo_nombre: backup.equipo_nombre,
@@ -248,6 +252,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addIncident(backupIncident);
     };
 
+    const isolateEquipment = (equipmentId: string) => {
+        if (!isolatedEquipment.includes(equipmentId)) {
+            setIsolatedEquipment(prev => [...prev, equipmentId]);
+            toast({
+                title: "Equipo Aislado",
+                description: "El equipo ha sido aislado de la red exitosamente.",
+            });
+        }
+    };
+
+    const isEquipmentIsolated = (equipmentId: string): boolean => {
+        return isolatedEquipment.includes(equipmentId);
+    };
+
     return (
         <DataContext.Provider value={{
             alerts: activeAlerts,
@@ -255,9 +273,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             resolvedAlerts,
             incidents,
             backups,
+            isolatedEquipment,
             addSimulatedAlert,
             addIncident,
             addBackup,
+            isolateEquipment,
+            isEquipmentIsolated,
             resolveAlert,
             requestHelp,
             getEquipmentStatus
