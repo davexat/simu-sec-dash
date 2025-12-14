@@ -66,9 +66,10 @@ export default function Reportes() {
   const enRiesgoPercent = totalEquipment > 0 ? Math.round((enRiesgo / totalEquipment) * 100) : 0;
   const amenazadosPercent = totalEquipment > 0 ? Math.round((amenazados / totalEquipment) * 100) : 0;
 
-  // Calculate resolution rate
-  const totalIncidents = incidents.length;
-  const resolutionRate = totalIncidents > 0 ? Math.round((totalResueltos / totalIncidents) * 100) : 0;
+  // Calculate resolution rate based on alerts (not incidents)
+  const totalAlertsEver = alerts.length + resolvedAlerts.length; // Active + Resolved
+  const alertasResueltas = resolvedAlerts.length;
+  const resolutionRate = totalAlertsEver > 0 ? Math.round((alertasResueltas / totalAlertsEver) * 100) : 100;
 
   return (
     <DashboardLayout>
@@ -127,10 +128,10 @@ export default function Reportes() {
                     resolutionRate >= 50 ? 'bg-warning/10 text-warning' :
                       'bg-danger/10 text-danger'
                     }`}>
-                    {totalResueltos}/{totalIncidents}
+                    {alertasResueltas}/{totalAlertsEver}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">incidentes resueltos</p>
+                <p className="text-xs text-muted-foreground mt-1">alertas resueltas</p>
               </div>
             </div>
           </CardContent>
@@ -226,11 +227,11 @@ export default function Reportes() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <AlertTriangle className="h-5 w-5 text-warning" />
-                  <p className="font-medium">Incidentes Totales</p>
+                  <p className="font-medium">Historial de Incidentes</p>
                 </div>
                 <p className="text-2xl font-bold mb-1">{incidents.length}</p>
                 <p className="text-sm text-muted-foreground">
-                  {totalResueltos} resueltos, {incidents.length + alertasActivas - totalResueltos} pendientes
+                  {alertasActivas} alertas activas requieren atención
                 </p>
               </div>
               <div>

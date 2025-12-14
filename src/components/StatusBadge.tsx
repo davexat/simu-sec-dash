@@ -1,6 +1,6 @@
 import { SecurityStatus, AlertLevel, AgentConnectionStatus } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, XCircle, Wifi, WifiOff, Loader2 } from "lucide-react";
+import { Shield, AlertTriangle, XCircle, Wifi, WifiOff, Loader2, AlertCircle } from "lucide-react";
 
 interface StatusBadgeProps {
   status: SecurityStatus | AlertLevel | AgentConnectionStatus;
@@ -62,7 +62,7 @@ export function StatusBadge({ status, type }: StatusBadgeProps) {
       "Desincronizado": {
         variant: "default" as const,
         className: "bg-warning text-warning-foreground hover:bg-warning/80",
-        icon: Loader2,
+        icon: AlertCircle,
         iconClassName: "",
         displayText: "Desincronizado" as string | undefined
       },

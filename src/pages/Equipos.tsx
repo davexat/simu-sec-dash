@@ -288,7 +288,7 @@ export default function Equipos() {
                   <Button
                     variant="outline"
                     onClick={() => simularAccion("Análisis completo", equipoActual.nombre)}
-                    disabled={accionEnProgreso}
+                    disabled={accionEnProgreso || equipoActual.estado_conexion_agente === "Desconectado"}
                   >
                     <Play className="h-4 w-4 mr-2" />
                     Forzar Análisis
@@ -304,7 +304,7 @@ export default function Equipos() {
                   <Button
                     variant="outline"
                     onClick={() => simularAccion("Sincronización", equipoActual.nombre, equipoActual.id)}
-                    disabled={accionEnProgreso}
+                    disabled={accionEnProgreso || equipoActual.estado_conexion_agente === "Desconectado"}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Sincronizar Agente

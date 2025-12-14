@@ -95,7 +95,8 @@ export const mockAlerts: Alert[] = [
     equipo_nombre: "PC-Ventas-1",
     descripcion: "Se detectó un cambio masivo en archivos en PC-Ventas-1. Más de 500 archivos fueron modificados en los últimos 10 minutos, lo que podría indicar actividad de ransomware.",
     recomendacion: "Aísle inmediatamente el equipo de la red y restaure la última copia de seguridad. No apague el equipo para preservar evidencia forense.",
-    estado: "Activa"
+    estado: "Activa",
+    type: "data_exfiltration"
   },
   {
     id: "ALT-002",
@@ -105,7 +106,8 @@ export const mockAlerts: Alert[] = [
     equipo_nombre: "SERV-FACT",
     descripcion: "El servidor de facturación está ejecutando una versión desactualizada del agente de seguridad. La versión actual tiene vulnerabilidades conocidas que han sido corregidas.",
     recomendacion: "Programe una actualización del agente durante el próximo mantenimiento. La actualización tomará aproximadamente 5 minutos y no requiere reinicio del servidor.",
-    estado: "Activa"
+    estado: "Activa",
+    type: "agent_outdated"
   },
   {
     id: "ALT-003",
@@ -138,7 +140,7 @@ export const mockIncidents: Incident[] = [
     descripcion: "Pérdida de conexión prolongada del agente",
     tipo: "Conectividad",
     acciones: ["Notificación enviada", "Reinicio remoto solicitado"],
-    estado: "En investigación"
+    estado: "Resuelto"
   },
   {
     id: "INC-003",
@@ -158,7 +160,7 @@ export const mockIncidents: Incident[] = [
     tipo: "Software no autorizado",
     descripcion: "Instalación de aplicación no aprobada detectada",
     acciones: ["Software desinstalado", "Política reforzada"],
-    estado: "Mitigado"
+    estado: "Resuelto"
   },
   {
     id: "INC-005",

@@ -50,9 +50,15 @@ export default function Analisis() {
     );
   }
 
-  const conexionesActivas = 47;
-  const conexionesSospechosas = 3;
-  const picosTrafic = 2;
+  // Calculate metrics from real alerts
+  const alertasAltas = alerts.filter(a => a.nivel === "Alta" && a.estado === "Activa");
+  const alertasMedias = alerts.filter(a => a.nivel === "Media" && a.estado === "Activa");
+  const alertasBajas = alerts.filter(a => a.nivel === "Baja" && a.estado === "Activa");
+
+  // Simulated metrics (would come from network monitoring in real system)
+  const conexionesActivas = 47 + Math.floor(Math.random() * 10); // Simulate variation
+  const conexionesSospechosas = alertasAltas.length + alertasMedias.length;
+  const picosTrafic = alertasAltas.filter(a => a.type === 'data_exfiltration').length;
 
   return (
     <DashboardLayout>
@@ -72,7 +78,7 @@ export default function Analisis() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{conexionesActivas}</div>
-              <p className="text-xs text-muted-foreground">En este momento</p>
+              <p className="text-xs text-muted-foreground">Simulado - En sistema real</p>
             </CardContent>
           </Card>
 
@@ -83,7 +89,7 @@ export default function Analisis() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{conexionesSospechosas}</div>
-              <p className="text-xs text-muted-foreground">Requieren revisión</p>
+              <p className="text-xs text-muted-foreground">Alertas Alta + Media activas</p>
             </CardContent>
           </Card>
 
@@ -94,55 +100,11 @@ export default function Analisis() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{picosTrafic}</div>
-              <p className="text-xs text-muted-foreground">Últimas 24 horas</p>
+              <p className="text-xs text-muted-foreground">Intentos de exfiltración detectados</p>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Conexiones en Tiempo Real</CardTitle>
-            <CardDescription>Actividad de red en las últimas 24 horas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={datosConexiones}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis
-                  dataKey="hora"
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  className="text-xs"
-                />
-                <YAxis
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  className="text-xs"
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--background))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '6px'
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="conexiones"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                  name="Conexiones Totales"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="sospechosas"
-                  stroke="hsl(var(--destructive))"
-                  strokeWidth={2}
-                  name="Sospechosas"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
 
         <Card>
           <CardHeader>
@@ -225,26 +187,52 @@ export default function Analisis() {
             <CardDescription>Acciones sugeridas basadas en el análisis</CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
-                <span>
-                  <strong>PC-Ventas-1:</strong> Ejecutar análisis completo de malware y revisar procesos en ejecución
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
-                <span>
-                  <strong>SERV-FACT:</strong> Mantener bloqueado el acceso al dominio sospechoso y monitorear intentos futuros
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Activity className="h-4 w-4 text-primary mt-0.5" />
-                <span>
-                  <strong>DB-Clientes:</strong> Verificar respaldos programados que podrían explicar el pico de tráfico nocturno
-                </span>
-              </li>
-            </ul>
+            <div className="space-y-3">
+              {alertasAltas.length === 0 && alertasMedias.length === 0 ? (
+                <div className="p-4 border rounded-lg bg-success/5 border-success/20">
+                  <div className="flex items-start gap-2">
+                    <Shield className="h-5 w-5 text-success mt-0.5" />
+                    <div>
+                      <p className="font-medium text-success">Sistema Seguro</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        No hay alertas críticas o medias activas. Continuar con monitoreo rutinario.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {alertasAltas.map((alert) => (
+                    <div key={alert.id} className="p-4 border rounded-lg bg-destructive/5 border-destructive/20">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-medium text-destructive mb-1">{alert.equipo_nombre}</p>
+                          <p className="text-sm mb-2">{alert.recomendacion}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Alerta: {alert.descripcion}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {alertasMedias.map((alert) => (
+                    <div key={alert.id} className="p-4 border rounded-lg bg-warning/5 border-warning/20">
+                      <div className="flex items-start gap-2">
+                        <Activity className="h-5 w-5 text-warning mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-medium text-warning mb-1">{alert.equipo_nombre}</p>
+                          <p className="text-sm mb-2">{alert.recomendacion}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Alerta: {alert.descripcion}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div >

@@ -10,13 +10,11 @@ import { AlertTriangle, CheckCircle, HelpCircle, XCircle, Check, X } from "lucid
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 export default function Alertas() {
-  const { alerts, resolvedAlerts, resolveAlert, requestHelp, canResolveAlert } = useData();
-  const [ayudaSolicitada, setAyudaSolicitada] = useState<Record<string, boolean>>({});
+  const { alerts, resolvedAlerts, resolveAlert, requestHelp, canResolveAlert, helpRequestedIds } = useData();
   const [confirmFalsePositive, setConfirmFalsePositive] = useState<Alert | null>(null);
 
   const handleSolicitarAyuda = (alerta: Alert) => {
     requestHelp(alerta);
-    setAyudaSolicitada(prev => ({ ...prev, [alerta.id]: true }));
   };
 
   const handleFalsePositiveClick = (alerta: Alert) => {
@@ -136,12 +134,12 @@ export default function Alertas() {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      variant={ayudaSolicitada[alerta.id] ? "secondary" : "default"}
+                      variant={helpRequestedIds.includes(alerta.id) ? "secondary" : "default"}
                       onClick={() => handleSolicitarAyuda(alerta)}
-                      disabled={ayudaSolicitada[alerta.id]}
+                      disabled={helpRequestedIds.includes(alerta.id)}
                     >
                       <HelpCircle className="h-4 w-4 mr-2" />
-                      {ayudaSolicitada[alerta.id] ? "Ayuda Solicitada" : "Solicitar Ayuda"}
+                      {helpRequestedIds.includes(alerta.id) ? "Ayuda Solicitada" : "Solicitar Ayuda"}
                     </Button>
                     <Button
                       size="sm"

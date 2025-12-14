@@ -25,6 +25,7 @@ interface DataContextType {
     checkPolicyEnabled: (policyId: string) => boolean; // New
     resolveAlert: (id: string, falsePositive?: boolean) => Promise<void>;
     requestHelp: (alert: Alert) => void;
+    helpRequestedIds: string[];
     getEquipmentStatus: (id: string) => "Seguro" | "Advertencia" | "Amenaza" | "Desconectado";
 }
 
@@ -53,6 +54,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isolatedEquipment, setIsolatedEquipment] = useState<string[]>([]);
     const [equipment, setEquipment] = useState<Equipment[]>(mockEquipment);
     const [policyStates, setPolicyStates] = useState<Record<string, boolean>>({});
+    const [helpRequestedIds, setHelpRequestedIds] = useState<string[]>([]);
 
     // Load policy states
     useEffect(() => {
@@ -271,6 +273,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Solicitar ayuda
     const requestHelp = (alert: Alert) => {
+        setHelpRequestedIds(prev => [...prev, alert.id]);
         toast({
             title: "Ayuda Solicitada",
             description: `Técnico notificado para alerta ${alert.id}.`
@@ -352,7 +355,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Update equipment state
         setEquipment(prev => prev.map(e =>
             e.id === equipmentId
-                ? { ...e, version_agente: "1.2.3", estado_conexion_agente: "Conectado" as const }
+                ? { ...e, version_agente: "1.2.3", estado_conexion_agente: "Conectado" as const, estado_seguridad: "Seguro" as const }
                 : e
         ));
 
@@ -413,7 +416,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             checkPolicyEnabled,
             resolveAlert,
             requestHelp,
-            getEquipmentStatus
+            getEquipmentStatus,
+            helpRequestedIds
         }}>
             {children}
         </DataContext.Provider>
