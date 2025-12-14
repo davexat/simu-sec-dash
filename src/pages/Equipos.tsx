@@ -17,7 +17,7 @@ import { Equipment } from "@/types";
 import { useNavigate } from "react-router-dom";
 
 export default function Equipos() {
-  const { equipment, isolateEquipment, isEquipmentIsolated } = useData();
+  const { equipment, isolateEquipment, isEquipmentIsolated, syncEquipment } = useData();
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [equipoSeleccionado, setEquipoSeleccionado] = useState<string | null>(null);
   const [dialogAbierto, setDialogAbierto] = useState(false);
@@ -73,7 +73,7 @@ export default function Equipos() {
     return null;
   };
 
-  const simularAccion = (accion: string, equipoNombre: string) => {
+  const simularAccion = (accion: string, equipoNombre: string, equipoId?: string) => {
     setAccionEnProgreso(true);
     setProgreso(0);
 
@@ -82,6 +82,12 @@ export default function Equipos() {
         if (prev >= 100) {
           clearInterval(intervalo);
           setAccionEnProgreso(false);
+
+          // If sync action, call syncEquipment
+          if (accion === "Sincronización" && equipoId) {
+            syncEquipment(equipoId);
+          }
+
           toast({
             title: "Acción completada",
             description: `${accion} en ${equipoNombre} finalizado exitosamente`,
@@ -297,7 +303,7 @@ export default function Equipos() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => simularAccion("Sincronización", equipoActual.nombre)}
+                    onClick={() => simularAccion("Sincronización", equipoActual.nombre, equipoActual.id)}
                     disabled={accionEnProgreso}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />

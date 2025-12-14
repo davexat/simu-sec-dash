@@ -10,7 +10,7 @@ import { useData } from "@/contexts/DataProvider";
 export default function Reportes() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { equipment, alerts, resolvedAlerts, incidents } = useData();
+  const { equipment, alerts, resolvedAlerts, incidents, calculateRiskLevel } = useData();
 
   if (user?.rol !== "Administrador") {
     return (
@@ -56,6 +56,9 @@ export default function Reportes() {
 
   // Total de alertas resueltas en esta sesión + incidentes históricos resueltos
   const totalResueltos = resolvedAlerts.length + incidents.filter(i => i.estado === "Resuelto").length;
+
+  // Dynamic risk calculation
+  const riskData = calculateRiskLevel();
 
   return (
     <DashboardLayout>
@@ -125,20 +128,28 @@ export default function Reportes() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Riesgo Actual</span>
-                  <Badge className="bg-warning/10 text-warning">MEDIO</Badge>
+                  <Badge className={`${riskData.level === 'ALTO' ? 'bg-destructive/10 text-destructive' :
+                      riskData.level === 'MEDIO' ? 'bg-warning/10 text-warning' :
+                        'bg-green-500/10 text-green-600'
+                    }`}>{riskData.level}</Badge>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Nivel de Protección</span>
-                    <span className="font-medium">68%</span>
+                    <span className="font-medium">{100 - riskData.percentage}%</span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-warning" style={{ width: "68%" }} />
+                    <div className={`h-full ${riskData.level === 'ALTO' ? 'bg-destructive' :
+                        riskData.level === 'MEDIO' ? 'bg-warning' :
+                          'bg-green-500'
+                      }`} style={{ width: `${100 - riskData.percentage}%` }} />
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Se detectaron {alertasActivas} alertas activas que requieren atención.
-                  Se recomienda resolver las amenazas críticas en las próximas 24 horas.
+                  {riskData.level === 'ALTO' && ' Se recomienda resolver las amenazas críticas INMEDIATAMENTE.'}
+                  {riskData.level === 'MEDIO' && ' Se recomienda resolver las amenazas en las próximas 24 horas.'}
+                  {riskData.level === 'BAJO' && ' El sistema está operando normalmente.'}
                 </p>
               </div>
             </CardContent>

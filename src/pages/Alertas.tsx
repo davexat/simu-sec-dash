@@ -6,15 +6,28 @@ import { Alert } from "@/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { AlertTriangle, CheckCircle, HelpCircle, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, HelpCircle, XCircle, Check, X } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 export default function Alertas() {
-  const { alerts, resolvedAlerts, resolveAlert, requestHelp } = useData();
+  const { alerts, resolvedAlerts, resolveAlert, requestHelp, canResolveAlert } = useData();
   const [ayudaSolicitada, setAyudaSolicitada] = useState<Record<string, boolean>>({});
+  const [confirmFalsePositive, setConfirmFalsePositive] = useState<Alert | null>(null);
 
   const handleSolicitarAyuda = (alerta: Alert) => {
     requestHelp(alerta);
     setAyudaSolicitada(prev => ({ ...prev, [alerta.id]: true }));
+  };
+
+  const handleFalsePositiveClick = (alerta: Alert) => {
+    setConfirmFalsePositive(alerta);
+  };
+
+  const confirmFalsePositiveAction = () => {
+    if (confirmFalsePositive) {
+      resolveAlert(confirmFalsePositive.id, true);
+      setConfirmFalsePositive(null);
+    }
   };
 
   const alertasActivas = alerts.filter(a => a.estado === "Activa");
@@ -96,6 +109,28 @@ export default function Alertas() {
                         <p className="font-medium mb-1">Recomendación:</p>
                         <p>{alerta.recomendacion}</p>
                       </div>
+
+                      {/* Prerequisites Section */}
+                      {alerta.prerequisites && alerta.prerequisites.length > 0 && (
+                        <div className="mt-3 p-3 border rounded bg-card">
+                          <p className="text-sm font-semibold mb-2">Acciones Requeridas:</p>
+                          <div className="space-y-2">
+                            {alerta.prerequisites.map((prereq) => {
+                              const isCompleted = prereq.checkCompleted();
+                              return (
+                                <div key={prereq.id} className="flex items-start gap-2">
+                                  <div className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center pointer-events-none select-none ${isCompleted ? 'bg-green-500 border-green-500' : 'border-muted-foreground bg-muted'
+                                    }`}>
+                                    {isCompleted && <Check className="h-3 w-3 text-white" />}
+                                  </div>
+                                  <span className={`text-sm select-none ${isCompleted ? 'text-muted-foreground line-through' : ''
+                                    }`}>{prereq.description}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -111,7 +146,7 @@ export default function Alertas() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => resolveAlert(alerta.id, true)}
+                      onClick={() => handleFalsePositiveClick(alerta)}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
                       Falso Positivo
@@ -120,9 +155,10 @@ export default function Alertas() {
                       size="sm"
                       variant="ghost"
                       onClick={() => resolveAlert(alerta.id, false)}
+                      disabled={!canResolveAlert(alerta)}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Resuelta
+                      {canResolveAlert(alerta) ? 'Resolver' : 'Completar Acciones Primero'}
                     </Button>
                   </div>
                 </div>
@@ -172,6 +208,44 @@ export default function Alertas() {
 
 
       </div>
+
+      {/* False Positive Confirmation Dialog */}
+      <Dialog open={!!confirmFalsePositive} onOpenChange={() => setConfirmFalsePositive(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              ¿Marcar como Falso Positivo?
+            </DialogTitle>
+            <DialogDescription>
+              Esta acción indica que la alerta fue incorrecta o no representa una amenaza real.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-warning/10 border border-warning/20 rounded p-3 mb-4">
+              <p className="text-sm font-medium mb-1">Advertencia</p>
+              <p className="text-sm text-muted-foreground">
+                Marcar una alerta como falso positivo significa que el sistema generó una alerta incorrecta.
+                Solo use esta opción si está completamente seguro de que no hay amenaza real.
+              </p>
+            </div>
+            {confirmFalsePositive && (
+              <div className="space-y-2">
+                <p className="text-sm"><strong>Equipo:</strong> {confirmFalsePositive.equipo_nombre}</p>
+                <p className="text-sm"><strong>Descripción:</strong> {confirmFalsePositive.descripcion}</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmFalsePositive(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={confirmFalsePositiveAction}>
+              Confirmar Falso Positivo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

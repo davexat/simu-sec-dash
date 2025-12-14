@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Alert, Equipment, Incident, Backup } from "@/types";
 import { mockAlerts, mockEquipment, mockIncidents, mockBackups, SIMULATED_EQUIPMENT_ID } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
+import { getPolicyState } from "@/services/policyService";
 
 interface DataContextType {
     alerts: Alert[];
@@ -18,6 +19,10 @@ interface DataContextType {
     addBackup: (backup: Backup) => void; // New
     isolateEquipment: (equipmentId: string) => void; // New
     isEquipmentIsolated: (equipmentId: string) => boolean; // New
+    syncEquipment: (equipmentId: string) => Promise<void>; // New
+    calculateRiskLevel: () => { level: 'BAJO' | 'MEDIO' | 'ALTO'; percentage: number; color: string }; // New
+    canResolveAlert: (alert: Alert) => boolean; // New
+    checkPolicyEnabled: (policyId: string) => boolean; // New
     resolveAlert: (id: string, falsePositive?: boolean) => Promise<void>;
     requestHelp: (alert: Alert) => void;
     getEquipmentStatus: (id: string) => "Seguro" | "Advertencia" | "Amenaza" | "Desconectado";
@@ -46,12 +51,76 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [incidents, setIncidents] = useState<Incident[]>(mockIncidents);
     const [backups, setBackups] = useState<Backup[]>(mockBackups);
     const [isolatedEquipment, setIsolatedEquipment] = useState<string[]>([]);
+    const [equipment, setEquipment] = useState<Equipment[]>(mockEquipment);
+    const [policyStates, setPolicyStates] = useState<Record<string, boolean>>({});
+
+    // Load policy states
+    useEffect(() => {
+        const loadPolicyStates = async () => {
+            const pol003State = await getPolicyState('POL-003');
+            setPolicyStates({ 'POL-003': pol003State });
+        };
+        loadPolicyStates();
+
+        // Poll every 2 seconds to check for policy changes
+        const interval = setInterval(loadPolicyStates, 2000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Helper functions - must be defined before activeAlerts
+    const checkPolicyEnabled = (policyId: string): boolean => {
+        return policyStates[policyId] || false;
+    };
+
+    const createPrerequisitesForAlert = (type: string, equipmentId: string) => {
+        const prerequisites = [];
+
+        if (type === 'data_exfiltration') {
+            prerequisites.push({
+                id: 'activate-pol-003',
+                description: 'Activar política POL-003 (Restricción de conexiones externas)',
+                type: 'policy' as const,
+                targetId: 'POL-003',
+                checkCompleted: () => checkPolicyEnabled('POL-003')
+            });
+            prerequisites.push({
+                id: 'isolate-equipment',
+                description: `Aislar equipo ${equipmentId}`,
+                type: 'isolation' as const,
+                targetId: equipmentId,
+                checkCompleted: () => isolatedEquipment.includes(equipmentId)
+            });
+        } else if (type === 'agent_outdated') {
+            prerequisites.push({
+                id: 'sync-agent',
+                description: 'Sincronizar agente a versión 1.2.3',
+                type: 'sync' as const,
+                targetId: equipmentId,
+                checkCompleted: () => {
+                    const eq = equipment.find(e => e.id === equipmentId);
+                    return eq?.version_agente === '1.2.3' && eq?.estado_conexion_agente === 'Conectado';
+                }
+            });
+        }
+
+        return prerequisites;
+    };
 
     // Combinar alertas activas (estáticas no resueltas + dinámicas activas)
+    // Recalcular prerequisites dinámicamente para que se actualicen con el estado
     const activeAlerts = [
         ...staticAlerts.filter(a => !resolvedStaticIds.includes(a.id)),
         ...dynamicAlerts
-    ].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+    ].map(alert => {
+        // Solo agregar prerequisites si hay un tipo definido
+        if (alert.type && (alert.type === 'data_exfiltration' || alert.type === 'agent_outdated')) {
+            return {
+                ...alert,
+                prerequisites: createPrerequisitesForAlert(alert.type, alert.equipo_id)
+            };
+        }
+        return alert;
+    }).sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
     // Listener de Firebase para alertas del usuario actual
     useEffect(() => {
@@ -69,6 +138,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const alerts: Alert[] = snapshot.docs.map(docSnap => {
                 const data = docSnap.data();
+                const alertType = data.type || '';
                 return {
                     id: docSnap.id,
                     nivel: data.level as "Alta" | "Media" | "Baja",
@@ -77,7 +147,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     equipo_nombre: data.equipmentName,
                     descripcion: data.description,
                     recomendacion: data.recommendation,
-                    estado: "Activa"
+                    estado: "Activa",
+                    type: alertType
                 };
             });
             setDynamicAlerts(alerts);
@@ -221,7 +292,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     // Equipos con estado dinámico
-    const equipmentWithStatus = mockEquipment.map(eq => ({
+    const equipmentWithStatus = equipment.map(eq => ({
         ...eq,
         estado_seguridad: getEquipmentStatus(eq.id)
     }));
@@ -266,6 +337,63 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return isolatedEquipment.includes(equipmentId);
     };
 
+    // Check if alert can be resolved (all prerequisites met)
+    const canResolveAlert = (alert: Alert): boolean => {
+        if (!alert.prerequisites || alert.prerequisites.length === 0) {
+            return true; // No prerequisites, can resolve
+        }
+        return alert.prerequisites.every(p => p.checkCompleted());
+    };
+
+    const syncEquipment = async (equipmentId: string) => {
+        const eq = equipment.find(e => e.id === equipmentId);
+        if (!eq) return;
+
+        // Update equipment state
+        setEquipment(prev => prev.map(e =>
+            e.id === equipmentId
+                ? { ...e, version_agente: "1.2.3", estado_conexion_agente: "Conectado" as const }
+                : e
+        ));
+
+        // Create incident
+        const syncIncident: Incident = {
+            id: `INC-SYNC-${Math.floor(100 + Math.random() * 900)}`,
+            fecha: new Date().toISOString(),
+            equipo_id: equipmentId,
+            equipo_nombre: eq.nombre,
+            tipo: "Sincronización de Agente",
+            descripcion: `Agente sincronizado exitosamente. Versión actualizada a 1.2.3.`,
+            acciones: ["Sincronización completada", "Versión actualizada"],
+            estado: "Resuelto"
+        };
+        addIncident(syncIncident);
+
+        toast({
+            title: "Sincronización Completada",
+            description: `${eq.nombre} sincronizado exitosamente a v1.2.3`,
+        });
+    };
+
+    const calculateRiskLevel = (): { level: 'BAJO' | 'MEDIO' | 'ALTO'; percentage: number; color: string } => {
+        const highAlerts = activeAlerts.filter(a => a.nivel === 'Alta').length;
+        const mediumAlerts = activeAlerts.filter(a => a.nivel === 'Media').length;
+        const isolatedCount = isolatedEquipment.length;
+        const unresolvedIncidents = incidents.filter(i => i.estado !== 'Resuelto').length;
+
+        let riskScore = 0;
+        riskScore += highAlerts * 30;
+        riskScore += mediumAlerts * 15;
+        riskScore += isolatedCount * 20;
+        riskScore += unresolvedIncidents * 10;
+
+        const percentage = Math.min(100, riskScore);
+
+        if (percentage >= 70) return { level: 'ALTO', percentage, color: 'destructive' };
+        if (percentage >= 40) return { level: 'MEDIO', percentage, color: 'warning' };
+        return { level: 'BAJO', percentage, color: 'success' };
+    };
+
     return (
         <DataContext.Provider value={{
             alerts: activeAlerts,
@@ -279,6 +407,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             addBackup,
             isolateEquipment,
             isEquipmentIsolated,
+            syncEquipment,
+            calculateRiskLevel,
+            canResolveAlert,
+            checkPolicyEnabled,
             resolveAlert,
             requestHelp,
             getEquipmentStatus

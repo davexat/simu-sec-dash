@@ -303,21 +303,21 @@ export default function DesktopSimulator() {
                             <div className={styles.modalText}>
                                 <p className={cn(styles.modalTitle, "text-destructive")}>Transferencia No Autorizada</p>
                                 <p className={styles.modalDescription}>
-                                    Se detectó una exfiltración masiva de datos hacia una IP desconocida.
-                                    La política POL-003 (Restricción de conexiones externas) está INACTIVA.
+                                    Se detectó una transferencia masiva de datos no autorizada hacia una IP desconocida.
+                                    Este equipo puede estar comprometido.
                                 </p>
                                 <div className="mt-4 p-3 bg-destructive/10 rounded border border-destructive/20">
-                                    <p className="text-xs font-semibold mb-2">ACCIONES INMEDIATAS:</p>
+                                    <p className="text-xs font-semibold mb-2 text-destructive">INSTRUCCIONES URGENTES:</p>
                                     <ol className="text-xs space-y-1 list-decimal list-inside">
-                                        <li>Aislar equipo de la red</li>
-                                        <li>Activar política POL-003</li>
-                                        <li>Revisar alertas en panel de Análisis</li>
-                                        <li>Iniciar análisis forense</li>
+                                        <li>NO apague ni desconecte el equipo</li>
+                                        <li>NO abra ningún otro archivo o programa</li>
+                                        <li>Contacte al administrador de sistemas INMEDIATAMENTE</li>
+                                        <li>Manténgase alejado del equipo hasta recibir instrucciones</li>
                                     </ol>
                                 </div>
                             </div>
                             <Button variant="destructive" className={styles.modalButton} onClick={closeModal}>
-                                Entendido - Ir a Alertas
+                                Entendido
                             </Button>
                         </div>
                     </DialogContent>

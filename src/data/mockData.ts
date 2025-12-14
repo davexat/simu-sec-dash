@@ -22,7 +22,7 @@ export const mockEquipment: Equipment[] = [
     ultimo_respaldo: "2025-11-11T23:05:00",
     estado_seguridad: "Advertencia",
     version_agente: "1.2.1",
-    estado_conexion_agente: "En sincronización"
+    estado_conexion_agente: "Desincronizado"
   },
   {
     id: "EQ-003",

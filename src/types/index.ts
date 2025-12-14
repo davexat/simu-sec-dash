@@ -1,8 +1,16 @@
 export type SecurityStatus = "Seguro" | "Advertencia" | "Amenaza" | "Desconectado";
-export type AgentConnectionStatus = "Conectado" | "Desconectado" | "En sincronización";
+export type AgentConnectionStatus = "Conectado" | "Desconectado" | "Desincronizado";
 export type AlertLevel = "Baja" | "Media" | "Alta";
 export type IncidentStatus = "Resuelto" | "Mitigado" | "En investigación";
 export type UserRole = "Administrador" | "Operativo";
+
+export interface AlertPrerequisite {
+  id: string;
+  description: string;
+  type: 'policy' | 'isolation' | 'sync' | 'custom';
+  targetId?: string;
+  checkCompleted: () => boolean;
+}
 
 export interface Equipment {
   id: string;
@@ -24,6 +32,8 @@ export interface Alert {
   descripcion: string;
   recomendacion: string;
   estado: "Activa" | "Resuelta" | "Falso Positivo";
+  type?: string;
+  prerequisites?: AlertPrerequisite[];
 }
 
 export interface Incident {

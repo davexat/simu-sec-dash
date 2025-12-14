@@ -59,6 +59,13 @@ export function StatusBadge({ status, type }: StatusBadgeProps) {
         iconClassName: "",
         displayText: undefined as string | undefined
       },
+      "Desincronizado": {
+        variant: "default" as const,
+        className: "bg-warning text-warning-foreground hover:bg-warning/80",
+        icon: Loader2,
+        iconClassName: "",
+        displayText: "Desincronizado" as string | undefined
+      },
       "En sincronización": {
         variant: "default" as const,
         className: "bg-primary text-primary-foreground hover:bg-primary/80",
