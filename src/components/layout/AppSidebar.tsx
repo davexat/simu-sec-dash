@@ -1,6 +1,7 @@
 import { Home, Server, AlertTriangle, History, HardDrive, Shield, Activity, FileText, MonitorSmartphone, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
+import { useData } from "@/contexts/DataProvider";
 import {
   Sidebar,
   SidebarContent,
@@ -13,6 +14,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home, roles: ["Administrador", "Operativo"] },
@@ -28,6 +30,8 @@ const menuItems = [
 export function AppSidebar() {
   const { open } = useSidebar();
   const { user, logout } = useAuth();
+  const { alerts } = useData();
+  const activeAlertsCount = alerts.filter(a => a.estado === "Activa").length;
 
   const filteredItems = menuItems.filter(item =>
     user && item.roles.includes(user.rol)
@@ -58,6 +62,11 @@ export function AppSidebar() {
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
+                      {item.title === "Alertas" && activeAlertsCount > 0 && (
+                        <Badge className="ml-auto bg-destructive text-destructive-foreground">
+                          {activeAlertsCount}
+                        </Badge>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
