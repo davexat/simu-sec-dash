@@ -60,6 +60,16 @@ export default function Reportes() {
   // Dynamic risk calculation
   const riskData = calculateRiskLevel();
 
+  // Calculate percentages for equipment status
+  const totalEquipment = equipment.length;
+  const segurosPercent = totalEquipment > 0 ? Math.round((seguros / totalEquipment) * 100) : 0;
+  const enRiesgoPercent = totalEquipment > 0 ? Math.round((enRiesgo / totalEquipment) * 100) : 0;
+  const amenazadosPercent = totalEquipment > 0 ? Math.round((amenazados / totalEquipment) * 100) : 0;
+
+  // Calculate resolution rate
+  const totalIncidents = incidents.length;
+  const resolutionRate = totalIncidents > 0 ? Math.round((totalResueltos / totalIncidents) * 100) : 0;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -88,31 +98,39 @@ export default function Reportes() {
                 <div className="flex items-baseline gap-2">
                   <p className="text-2xl font-bold">{seguros}</p>
                   <Badge className="bg-success/10 text-success">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    62.5%
+                    {segurosPercent}% del total
                   </Badge>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">de {totalEquipment} equipos</p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">En Riesgo</p>
                 <div className="flex items-baseline gap-2">
                   <p className="text-2xl font-bold">{enRiesgo}</p>
-                  <Badge className="bg-warning/10 text-warning">25%</Badge>
+                  <Badge className="bg-warning/10 text-warning">{enRiesgoPercent}% del total</Badge>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">requieren atención</p>
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Amenazas</p>
+                <p className="text-sm font-medium text-muted-foreground">Amenazas Activas</p>
                 <div className="flex items-baseline gap-2">
                   <p className="text-2xl font-bold">{amenazados}</p>
-                  <Badge className="bg-danger/10 text-danger">12.5%</Badge>
+                  <Badge className="bg-danger/10 text-danger">{amenazadosPercent}% del total</Badge>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">críticas</p>
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Incidentes Resueltos</p>
+                <p className="text-sm font-medium text-muted-foreground">Tasa de Resolución</p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold">{totalResueltos}</p>
-                  <Badge className="bg-primary/10 text-primary">60%</Badge>
+                  <p className="text-2xl font-bold">{resolutionRate}%</p>
+                  <Badge className={`${resolutionRate >= 80 ? 'bg-success/10 text-success' :
+                    resolutionRate >= 50 ? 'bg-warning/10 text-warning' :
+                      'bg-danger/10 text-danger'
+                    }`}>
+                    {totalResueltos}/{totalIncidents}
+                  </Badge>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">incidentes resueltos</p>
               </div>
             </div>
           </CardContent>
@@ -129,8 +147,8 @@ export default function Reportes() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Riesgo Actual</span>
                   <Badge className={`${riskData.level === 'ALTO' ? 'bg-destructive/10 text-destructive' :
-                      riskData.level === 'MEDIO' ? 'bg-warning/10 text-warning' :
-                        'bg-green-500/10 text-green-600'
+                    riskData.level === 'MEDIO' ? 'bg-warning/10 text-warning' :
+                      'bg-green-500/10 text-green-600'
                     }`}>{riskData.level}</Badge>
                 </div>
                 <div className="space-y-2">
@@ -140,8 +158,8 @@ export default function Reportes() {
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div className={`h-full ${riskData.level === 'ALTO' ? 'bg-destructive' :
-                        riskData.level === 'MEDIO' ? 'bg-warning' :
-                          'bg-green-500'
+                      riskData.level === 'MEDIO' ? 'bg-warning' :
+                        'bg-green-500'
                       }`} style={{ width: `${100 - riskData.percentage}%` }} />
                   </div>
                 </div>
