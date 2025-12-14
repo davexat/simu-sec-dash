@@ -15,8 +15,10 @@ import { Eye, Play, Download, RefreshCw, AlertTriangle, Plus } from "lucide-reac
 import { Progress } from "@/components/ui/progress";
 import { Equipment } from "@/types";
 import { useNavigate } from "react-router-dom";
+import { useTutorialAutoStart } from "@/hooks/useTutorialAutoStart";
 
 export default function Equipos() {
+  useTutorialAutoStart();
   const { equipment, isolateEquipment, isEquipmentIsolated, syncEquipment } = useData();
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [equipoSeleccionado, setEquipoSeleccionado] = useState<string | null>(null);
@@ -155,7 +157,7 @@ export default function Equipos() {
           </Button>
         </div>
 
-        <Card>
+        <Card data-tutorial="equipment-search">
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
             <CardDescription>Filtre equipos por estado de seguridad</CardDescription>
@@ -176,7 +178,7 @@ export default function Equipos() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="equipment-list">
           <CardHeader>
             <CardTitle>Equipos Registrados ({equiposFiltrados.length})</CardTitle>
             <CardDescription>
@@ -236,7 +238,7 @@ export default function Equipos() {
 
         {/* Dialog de detalles normales */}
         <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl" data-tutorial="equipment-details">
             <DialogHeader>
               <DialogTitle>Detalles del Equipo</DialogTitle>
               <DialogDescription>

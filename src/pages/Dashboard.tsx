@@ -7,10 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { mockEquipment } from "@/data/mockData";
+import { useTutorialAutoStart } from "@/hooks/useTutorialAutoStart";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { equipment, alerts } = useData();
+  useTutorialAutoStart();
 
   const seguros = equipment.filter(e => e.estado_seguridad === "Seguro").length;
   const enRiesgo = equipment.filter(e => e.estado_seguridad === "Advertencia").length;
@@ -29,7 +31,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Vista general del estado de protección de su empresa</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" data-tutorial="metrics">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Equipos Seguros</CardTitle>
@@ -75,7 +77,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <Card>
+        <Card data-tutorial="alerts-chart">
           <CardHeader>
             <CardTitle>Estado de Equipos</CardTitle>
             <CardDescription>Resumen de todos los equipos registrados en el sistema</CardDescription>
@@ -112,7 +114,7 @@ export default function Dashboard() {
         </Card>
 
         {alertasActivas > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-4" data-tutorial="recent-activity">
             {/* Amenazas Críticas */}
             {alerts.filter(a => a.estado === "Activa" && a.nivel === "Alta").length > 0 && (
               <Card className="border-danger">

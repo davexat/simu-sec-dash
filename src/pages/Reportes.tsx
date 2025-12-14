@@ -6,8 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Download, FileText, TrendingUp, AlertTriangle, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataProvider";
+import { useTutorialAutoStart } from "@/hooks/useTutorialAutoStart";
 
 export default function Reportes() {
+  useTutorialAutoStart();
   const { toast } = useToast();
   const { user } = useAuth();
   const { equipment, alerts, resolvedAlerts, incidents, calculateRiskLevel } = useData();
@@ -87,7 +89,7 @@ export default function Reportes() {
           </Button>
         </div>
 
-        <Card>
+        <Card data-tutorial="monthly-summary">
           <CardHeader>
             <CardTitle>Resumen del Mes Actual</CardTitle>
             <CardDescription>Noviembre 2025 • Vista general de seguridad</CardDescription>
@@ -138,7 +140,7 @@ export default function Reportes() {
         </Card>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <Card>
+          <Card data-tutorial="protection-level">
             <CardHeader>
               <CardTitle>Nivel de Riesgo General</CardTitle>
               <CardDescription>Evaluación basada en todos los indicadores</CardDescription>
@@ -224,7 +226,7 @@ export default function Reportes() {
                   Promedio para resolver incidentes críticos
                 </p>
               </div>
-              <div>
+              <div data-tutorial="incidents-history">
                 <div className="flex items-center gap-2 mb-2">
                   <AlertTriangle className="h-5 w-5 text-warning" />
                   <p className="font-medium">Historial de Incidentes</p>
@@ -234,7 +236,7 @@ export default function Reportes() {
                   {alertasActivas} alertas activas requieren atención
                 </p>
               </div>
-              <div>
+              <div data-tutorial="backup-success">
                 <div className="flex items-center gap-2 mb-2">
                   <FileText className="h-5 w-5 text-primary" />
                   <p className="font-medium">Respaldos Exitosos</p>

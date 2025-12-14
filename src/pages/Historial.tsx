@@ -8,8 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CheckCircle2, Clock, AlertCircle, ChevronDown } from "lucide-react";
 import { useData } from "@/contexts/DataProvider";
 import { Button } from "@/components/ui/button";
+import { useTutorialAutoStart } from "@/hooks/useTutorialAutoStart";
 
 export default function Historial() {
+  useTutorialAutoStart();
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [filtroPeriodo, setFiltroPeriodo] = useState<string>("30");
   const [visibleCount, setVisibleCount] = useState(5); // Pagination limit
@@ -97,7 +99,7 @@ export default function Historial() {
           </Card>
         </div>
 
-        <Card>
+        <Card data-tutorial="incident-filters">
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
             <CardDescription>Filtre incidentes por estado y período de tiempo</CardDescription>
@@ -132,7 +134,7 @@ export default function Historial() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="incidents-table">
           <CardHeader>
             <CardTitle>Registro de Incidentes ({incidentesFiltrados.length})</CardTitle>
             <CardDescription>Listado detallado de eventos de seguridad</CardDescription>
@@ -152,7 +154,7 @@ export default function Historial() {
               </TableHeader>
               <TableBody>
                 {incidentesFiltrados.map((incidente) => (
-                  <TableRow key={incidente.id}>
+                  <TableRow key={incidente.id} data-tutorial="incident-details">
                     <TableCell className="font-mono text-xs">{incidente.id}</TableCell>
                     <TableCell className="text-sm">
                       {new Date(incidente.fecha).toLocaleString('es-ES')}

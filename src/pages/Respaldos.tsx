@@ -12,8 +12,10 @@ import { Progress } from "@/components/ui/progress";
 import { useData } from "@/contexts/DataProvider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Backup } from "@/types";
+import { useTutorialAutoStart } from "@/hooks/useTutorialAutoStart";
 
 export default function Respaldos() {
+  useTutorialAutoStart();
   const [dialogAbierto, setDialogAbierto] = useState(false);
   const [respaldoSeleccionado, setRespaldoSeleccionado] = useState<Backup | null>(null);
   const [versionSeleccionada, setVersionSeleccionada] = useState<string | null>(null);
@@ -221,7 +223,7 @@ export default function Respaldos() {
           </Card>
         </div>
 
-        <Card>
+        <Card data-tutorial="backups-list">
           <CardHeader>
             <CardTitle>Respaldos Automáticos</CardTitle>
             <CardDescription>
@@ -247,7 +249,7 @@ export default function Respaldos() {
                     <TableCell className="font-medium">{backup.equipo_nombre}</TableCell>
                     <TableCell>{new Date(backup.fecha).toLocaleString('es-ES')}</TableCell>
                     <TableCell>{backup.tamaño}</TableCell>
-                    <TableCell>{getIntegridadBadge(backup.integridad)}</TableCell>
+                    <TableCell data-tutorial="backup-status">{getIntegridadBadge(backup.integridad)}</TableCell>
                     <TableCell>
                       <Button
                         size="sm"

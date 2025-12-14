@@ -18,8 +18,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTutorialAutoStart } from "@/hooks/useTutorialAutoStart";
 
 export default function Politicas() {
+  useTutorialAutoStart();
   const [politicas, setPoliticas] = useState<SecurityPolicy[]>(mockPolicies);
   const [policyConfigs, setPolicyConfigs] = useState<PolicyConfiguration[]>([]);
   const [expandedPolicies, setExpandedPolicies] = useState<Set<string>>(new Set());
@@ -503,7 +505,7 @@ export default function Politicas() {
           </Card>
         </div>
 
-        <Card>
+        <Card data-tutorial="policies-list">
           <CardHeader>
             <CardTitle>Configuración de Políticas</CardTitle>
             <CardDescription>
@@ -522,6 +524,7 @@ export default function Politicas() {
                 <div
                   key={politica.id}
                   className="border rounded-lg"
+                  data-tutorial="policy-status"
                 >
                   <div className="flex items-start justify-between p-4">
                     <div className="flex-1 mr-4">
@@ -545,11 +548,13 @@ export default function Politicas() {
                         checked={politica.habilitada}
                         onCheckedChange={() => toggleGlobalPolicy(politica.id)}
                         disabled={user?.rol !== "Administrador"}
+                        data-tutorial="policy-apply"
                       />
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => togglePolicyExpanded(politica.id)}
+                        data-tutorial="policy-config"
                       >
                         {isExpanded ? (
                           <ChevronUp className="h-4 w-4" />

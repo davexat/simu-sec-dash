@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, CheckCircle, HelpCircle, XCircle, Check, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useTutorialAutoStart } from "@/hooks/useTutorialAutoStart";
 
 export default function Alertas() {
+  useTutorialAutoStart();
   const { alerts, resolvedAlerts, resolveAlert, requestHelp, canResolveAlert, helpRequestedIds } = useData();
   const [confirmFalsePositive, setConfirmFalsePositive] = useState<Alert | null>(null);
 
@@ -63,7 +65,7 @@ export default function Alertas() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card data-tutorial="alert-priority">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Alertas Críticas</CardTitle>
               <AlertTriangle className="h-4 w-4 text-danger" />
@@ -77,7 +79,7 @@ export default function Alertas() {
           </Card>
         </div>
 
-        <Card>
+        <Card data-tutorial="alerts-list">
           <CardHeader>
             <CardTitle>Alertas Activas</CardTitle>
             <CardDescription>
@@ -92,7 +94,7 @@ export default function Alertas() {
               </div>
             ) : (
               alertasActivas.map((alerta) => (
-                <div key={alerta.id} className="p-4 border rounded-lg space-y-3">
+                <div key={alerta.id} className="p-4 border rounded-lg space-y-3" data-tutorial="alert-details">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
@@ -131,7 +133,7 @@ export default function Alertas() {
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2" data-tutorial="alert-actions">
                     <Button
                       size="sm"
                       variant={helpRequestedIds.includes(alerta.id) ? "secondary" : "default"}
@@ -165,7 +167,7 @@ export default function Alertas() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="resolved-alerts">
           <CardHeader>
             <CardTitle>Alertas Resueltas</CardTitle>
             <CardDescription>Historial de alertas gestionadas</CardDescription>

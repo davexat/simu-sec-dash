@@ -5,6 +5,7 @@ import { Activity, AlertTriangle, TrendingUp, Globe, Shield } from "lucide-react
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataProvider";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
+import { useTutorialAutoStart } from "@/hooks/useTutorialAutoStart";
 
 const datosConexiones = [
   { hora: "00:00", conexiones: 45, sospechosas: 2 },
@@ -24,6 +25,7 @@ const datosTrafico = [
 ];
 
 export default function Analisis() {
+  useTutorialAutoStart();
   const { user } = useAuth();
   const { alerts } = useData();
 
@@ -70,7 +72,7 @@ export default function Analisis() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3" data-tutorial="connectivity-metrics">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Conexiones Activas</CardTitle>
@@ -106,7 +108,7 @@ export default function Analisis() {
         </div>
 
 
-        <Card>
+        <Card data-tutorial="traffic-chart">
           <CardHeader>
             <CardTitle>Tráfico por Equipo</CardTitle>
             <CardDescription>Volumen de datos transferidos en las últimas 24 horas (GB)</CardDescription>
@@ -142,7 +144,7 @@ export default function Analisis() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="suspicious-connections">
           <CardHeader>
             <CardTitle>Conexiones Sospechosas Detectadas</CardTitle>
             <CardDescription>
@@ -181,7 +183,7 @@ export default function Analisis() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="recommendations">
           <CardHeader>
             <CardTitle>Recomendaciones</CardTitle>
             <CardDescription>Acciones sugeridas basadas en el análisis</CardDescription>
