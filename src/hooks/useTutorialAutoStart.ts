@@ -34,21 +34,12 @@ export function useTutorialAutoStart() {
 
         const pageName = PAGE_NAME_MAP[location.pathname];
 
-        console.log('[AutoStart] Checking:', {
-            pageName,
-            isActive,
-            isCompleted: pageName ? completedPages.has(pageName) : false,
-            completedSet: Array.from(completedPages)
-        });
-
         // Don't auto-start if already completed in this session
         if (pageName && completedPages.has(pageName)) {
-            console.log('[AutoStart] Skipped - Already completed');
             return;
         }
 
         if (pageName && !isActive) {
-            console.log('[AutoStart] Starting tutorial for', pageName);
             // Small delay to ensure page is fully rendered
             const timer = setTimeout(() => {
                 startTutorial(pageName);

@@ -63,13 +63,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
     const skipTutorial = (pageName?: string) => {
         const target = pageName || currentPage;
-        console.log('[TutorialContext] Skip requested for:', target);
 
         if (target) {
             setCompletedPages(prev => {
                 const newSet = new Set(prev);
                 newSet.add(target);
-                console.log('[TutorialContext] Updated completed pages:', Array.from(newSet));
                 return newSet;
             });
         }
