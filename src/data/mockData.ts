@@ -9,7 +9,7 @@ export const mockEquipment: Equipment[] = [
     nombre: "PC-Contabilidad",
     usuario: "maria.f",
     OS: "Windows 10",
-    ultimo_respaldo: "2025-11-10T02:14:00",
+    ultimo_respaldo: "2025-12-15T07:14:00",
     estado_seguridad: "Seguro",
     version_agente: "1.2.3",
     estado_conexion_agente: "Conectado"
@@ -19,7 +19,7 @@ export const mockEquipment: Equipment[] = [
     nombre: "SERV-FACT",
     usuario: "sistemas",
     OS: "Ubuntu 22.04",
-    ultimo_respaldo: "2025-11-11T23:05:00",
+    ultimo_respaldo: "2025-12-15T07:05:00",
     estado_seguridad: "Advertencia",
     version_agente: "1.2.1",
     estado_conexion_agente: "Desincronizado"
@@ -29,7 +29,7 @@ export const mockEquipment: Equipment[] = [
     nombre: "PC-Ventas-1",
     usuario: "juan.p",
     OS: "Windows 11",
-    ultimo_respaldo: "2025-11-09T12:00:00",
+    ultimo_respaldo: "2025-12-15T07:30:00",
     estado_seguridad: "Amenaza",
     version_agente: "1.2.3",
     estado_conexion_agente: "Conectado"
@@ -39,7 +39,7 @@ export const mockEquipment: Equipment[] = [
     nombre: "LAP-Admin",
     usuario: "roberto.g",
     OS: "macOS 13",
-    ultimo_respaldo: "2025-11-08T04:30:00",
+    ultimo_respaldo: "2025-12-15T07:45:00",
     estado_seguridad: "Desconectado",
     version_agente: "N/A",
     estado_conexion_agente: "Desconectado"
@@ -49,7 +49,7 @@ export const mockEquipment: Equipment[] = [
     nombre: "PC-Soporte",
     usuario: "soporte",
     OS: "Windows 10",
-    ultimo_respaldo: "2025-11-11T01:20:00",
+    ultimo_respaldo: "2025-12-15T07:20:00",
     estado_seguridad: "Seguro",
     version_agente: "1.2.3",
     estado_conexion_agente: "Conectado"
@@ -59,7 +59,7 @@ export const mockEquipment: Equipment[] = [
     nombre: "POS-Tienda1",
     usuario: "cajero1",
     OS: "Windows 10",
-    ultimo_respaldo: "2025-11-12T06:10:00",
+    ultimo_respaldo: "2025-12-15T07:10:00",
     estado_seguridad: "Advertencia",
     version_agente: "1.2.3",
     estado_conexion_agente: "Conectado"
@@ -69,7 +69,7 @@ export const mockEquipment: Equipment[] = [
     nombre: "PORTATIL-MKT",
     usuario: "ana.v",
     OS: "Ubuntu 24.04",
-    ultimo_respaldo: "2025-11-10T21:40:00",
+    ultimo_respaldo: "2025-12-15T07:40:00",
     estado_seguridad: "Seguro",
     version_agente: "1.2.3",
     estado_conexion_agente: "Conectado"
@@ -79,7 +79,7 @@ export const mockEquipment: Equipment[] = [
     nombre: "DB-Clientes",
     usuario: "dbadmin",
     OS: "CentOS 7",
-    ultimo_respaldo: "2025-11-12T00:00:00",
+    ultimo_respaldo: "2025-12-15T07:00:00",
     estado_seguridad: "Seguro",
     version_agente: "1.2.3",
     estado_conexion_agente: "Conectado"
@@ -90,7 +90,7 @@ export const mockAlerts: Alert[] = [
   {
     id: "ALT-001",
     nivel: "Alta",
-    fecha: "2025-11-12T09:23:00",
+    fecha: "2025-12-15T07:55:00",
     equipo_id: "EQ-003",
     equipo_nombre: "PC-Ventas-1",
     descripcion: "Se detectó un cambio masivo en archivos en PC-Ventas-1. Más de 500 archivos fueron modificados en los últimos 10 minutos, lo que podría indicar actividad de ransomware.",
@@ -101,7 +101,7 @@ export const mockAlerts: Alert[] = [
   {
     id: "ALT-002",
     nivel: "Media",
-    fecha: "2025-11-12T08:45:00",
+    fecha: "2025-12-15T07:45:00",
     equipo_id: "EQ-002",
     equipo_nombre: "SERV-FACT",
     descripcion: "El servidor de facturación está ejecutando una versión desactualizada del agente de seguridad. La versión actual tiene vulnerabilidades conocidas que han sido corregidas.",
@@ -112,7 +112,7 @@ export const mockAlerts: Alert[] = [
   {
     id: "ALT-003",
     nivel: "Baja",
-    fecha: "2025-11-12T07:15:00",
+    fecha: "2025-12-15T07:15:00",
     equipo_id: "EQ-006",
     equipo_nombre: "POS-Tienda1",
     descripcion: "Se detectó un intento de conexión desde un dispositivo USB no autorizado en el punto de venta. El acceso fue bloqueado automáticamente por las políticas de seguridad.",
@@ -124,7 +124,7 @@ export const mockAlerts: Alert[] = [
 export const mockIncidents: Incident[] = [
   {
     id: "INC-001",
-    fecha: "2025-12-10T14:30:00",
+    fecha: "2025-12-15T07:50:00",
     equipo_id: "EQ-003",
     equipo_nombre: "PC-Ventas-1",
     tipo: "Malware detectado",
@@ -134,7 +134,7 @@ export const mockIncidents: Incident[] = [
   },
   {
     id: "INC-002",
-    fecha: "2025-12-08T10:15:00",
+    fecha: "2025-12-15T07:35:00",
     equipo_id: "EQ-004",
     equipo_nombre: "LAP-Admin",
     descripcion: "Pérdida de conexión prolongada del agente",
@@ -144,7 +144,7 @@ export const mockIncidents: Incident[] = [
   },
   {
     id: "INC-003",
-    fecha: "2025-12-05T16:45:00",
+    fecha: "2025-12-15T07:25:00",
     equipo_id: "EQ-002",
     equipo_nombre: "SERV-FACT",
     tipo: "Acceso no autorizado",
@@ -154,7 +154,7 @@ export const mockIncidents: Incident[] = [
   },
   {
     id: "INC-004",
-    fecha: "2025-11-28T09:20:00",
+    fecha: "2025-12-15T07:10:00",
     equipo_id: "EQ-006",
     equipo_nombre: "POS-Tienda1",
     tipo: "Software no autorizado",
@@ -164,7 +164,7 @@ export const mockIncidents: Incident[] = [
   },
   {
     id: "INC-005",
-    fecha: "2025-11-22T13:50:00",
+    fecha: "2025-12-15T07:05:00",
     equipo_id: "EQ-001",
     equipo_nombre: "PC-Contabilidad",
     tipo: "Phishing",
@@ -175,14 +175,14 @@ export const mockIncidents: Incident[] = [
 ];
 
 export const mockBackups: Backup[] = [
-  { id: "BKP-001", equipo_id: "EQ-001", equipo_nombre: "PC-Contabilidad", fecha: "2025-11-10T02:14:00", tamaño: "45 GB", integridad: "Verificado" },
-  { id: "BKP-002", equipo_id: "EQ-002", equipo_nombre: "SERV-FACT", fecha: "2025-11-11T23:05:00", tamaño: "128 GB", integridad: "Verificado" },
-  { id: "BKP-003", equipo_id: "EQ-003", equipo_nombre: "PC-Ventas-1", fecha: "2025-11-09T12:00:00", tamaño: "32 GB", integridad: "Verificado" },
-  { id: "BKP-004", equipo_id: "EQ-004", equipo_nombre: "LAP-Admin", fecha: "2025-11-08T04:30:00", tamaño: "78 GB", integridad: "Pendiente" },
-  { id: "BKP-005", equipo_id: "EQ-005", equipo_nombre: "PC-Soporte", fecha: "2025-11-11T01:20:00", tamaño: "52 GB", integridad: "Verificado" },
-  { id: "BKP-006", equipo_id: "EQ-006", equipo_nombre: "POS-Tienda1", fecha: "2025-11-12T06:10:00", tamaño: "15 GB", integridad: "Verificado" },
-  { id: "BKP-007", equipo_id: "EQ-007", equipo_nombre: "PORTATIL-MKT", fecha: "2025-11-10T21:40:00", tamaño: "64 GB", integridad: "Verificado" },
-  { id: "BKP-008", equipo_id: "EQ-008", equipo_nombre: "DB-Clientes", fecha: "2025-11-12T00:00:00", tamaño: "256 GB", integridad: "Verificado" }
+  { id: "BKP-001", equipo_id: "EQ-001", equipo_nombre: "PC-Contabilidad", fecha: "2025-12-15T07:14:00", tamaño: "45 GB", integridad: "Verificado" },
+  { id: "BKP-002", equipo_id: "EQ-002", equipo_nombre: "SERV-FACT", fecha: "2025-12-15T07:05:00", tamaño: "128 GB", integridad: "Verificado" },
+  { id: "BKP-003", equipo_id: "EQ-003", equipo_nombre: "PC-Ventas-1", fecha: "2025-12-15T07:30:00", tamaño: "32 GB", integridad: "Verificado" },
+  { id: "BKP-004", equipo_id: "EQ-004", equipo_nombre: "LAP-Admin", fecha: "2025-12-15T07:45:00", tamaño: "78 GB", integridad: "Pendiente" },
+  { id: "BKP-005", equipo_id: "EQ-005", equipo_nombre: "PC-Soporte", fecha: "2025-12-15T07:20:00", tamaño: "52 GB", integridad: "Verificado" },
+  { id: "BKP-006", equipo_id: "EQ-006", equipo_nombre: "POS-Tienda1", fecha: "2025-12-15T07:10:00", tamaño: "15 GB", integridad: "Verificado" },
+  { id: "BKP-007", equipo_id: "EQ-007", equipo_nombre: "PORTATIL-MKT", fecha: "2025-12-15T07:40:00", tamaño: "64 GB", integridad: "Verificado" },
+  { id: "BKP-008", equipo_id: "EQ-008", equipo_nombre: "DB-Clientes", fecha: "2025-12-15T07:00:00", tamaño: "256 GB", integridad: "Verificado" }
 ];
 
 export const mockPolicies: SecurityPolicy[] = [

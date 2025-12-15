@@ -280,7 +280,7 @@ export default function Respaldos() {
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div>
                   <p className="font-medium">Frecuencia de respaldo completo</p>
-                  <p className="text-sm text-muted-foreground">Diario a las 02:00 AM</p>
+                  <p className="text-sm text-muted-foreground">Diario a las 07:00 AM</p>
                 </div>
                 <Badge>Activo</Badge>
               </div>

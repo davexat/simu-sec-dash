@@ -92,7 +92,7 @@ export default function Reportes() {
         <Card data-tutorial="monthly-summary">
           <CardHeader>
             <CardTitle>Resumen del Mes Actual</CardTitle>
-            <CardDescription>Noviembre 2025 • Vista general de seguridad</CardDescription>
+            <CardDescription>Diciembre 2025 • Vista general de seguridad</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-4">

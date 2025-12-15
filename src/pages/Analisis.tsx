@@ -8,12 +8,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useTutorialAutoStart } from "@/hooks/useTutorialAutoStart";
 
 const datosConexiones = [
-  { hora: "00:00", conexiones: 45, sospechosas: 2 },
-  { hora: "04:00", conexiones: 32, sospechosas: 1 },
-  { hora: "08:00", conexiones: 128, sospechosas: 5 },
-  { hora: "12:00", conexiones: 234, sospechosas: 12 },
-  { hora: "16:00", conexiones: 189, sospechosas: 8 },
-  { hora: "20:00", conexiones: 156, sospechosas: 4 },
+  { hora: "07:00", conexiones: 45, sospechosas: 2 },
+  { hora: "07:10", conexiones: 52, sospechosas: 1 },
+  { hora: "07:20", conexiones: 128, sospechosas: 5 },
+  { hora: "07:30", conexiones: 234, sospechosas: 12 },
+  { hora: "07:40", conexiones: 189, sospechosas: 8 },
+  { hora: "07:50", conexiones: 156, sospechosas: 4 },
 ];
 
 const datosTrafico = [
