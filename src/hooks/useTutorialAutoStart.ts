@@ -16,7 +16,7 @@ const PAGE_NAME_MAP: Record<string, string> = {
 
 export function useTutorialAutoStart() {
     const location = useLocation();
-    const { startTutorial, isActive, showWelcome, hasCompletedTutorial, wantsTutorial } = useTutorial();
+    const { startTutorial, isActive, showWelcome, completedPages, wantsTutorial } = useTutorial();
     const { isAuthenticated } = useAuth();
 
     useEffect(() => {
@@ -34,10 +34,21 @@ export function useTutorialAutoStart() {
 
         const pageName = PAGE_NAME_MAP[location.pathname];
 
+        console.log('[AutoStart] Checking:', {
+            pageName,
+            isActive,
+            isCompleted: pageName ? completedPages.has(pageName) : false,
+            completedSet: Array.from(completedPages)
+        });
+
         // Don't auto-start if already completed in this session
-        if (pageName && hasCompletedTutorial(pageName)) return;
+        if (pageName && completedPages.has(pageName)) {
+            console.log('[AutoStart] Skipped - Already completed');
+            return;
+        }
 
         if (pageName && !isActive) {
+            console.log('[AutoStart] Starting tutorial for', pageName);
             // Small delay to ensure page is fully rendered
             const timer = setTimeout(() => {
                 startTutorial(pageName);
@@ -45,5 +56,5 @@ export function useTutorialAutoStart() {
 
             return () => clearTimeout(timer);
         }
-    }, [location.pathname, startTutorial, isActive, isAuthenticated, showWelcome, hasCompletedTutorial, wantsTutorial]);
+    }, [location.pathname, startTutorial, isActive, isAuthenticated, showWelcome, wantsTutorial, completedPages]);
 }

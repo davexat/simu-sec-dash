@@ -16,13 +16,14 @@ interface TutorialContextType {
     startTutorial: (pageName: string) => void;
     nextStep: () => void;
     prevStep: () => void;
-    skipTutorial: () => void;
+    skipTutorial: (pageName?: string) => void;
     completeTutorial: () => void;
     hasCompletedTutorial: (pageName: string) => boolean;
     showWelcome: boolean;
     setShowWelcome: (show: boolean) => void;
     wantsTutorial: boolean;
     setWantsTutorial: (wants: boolean) => void;
+    completedPages: Set<string>;
 }
 
 const TutorialContext = createContext<TutorialContextType | undefined>(undefined);
@@ -60,7 +61,18 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         setCurrentStep(prev => Math.max(0, prev - 1));
     };
 
-    const skipTutorial = () => {
+    const skipTutorial = (pageName?: string) => {
+        const target = pageName || currentPage;
+        console.log('[TutorialContext] Skip requested for:', target);
+
+        if (target) {
+            setCompletedPages(prev => {
+                const newSet = new Set(prev);
+                newSet.add(target);
+                console.log('[TutorialContext] Updated completed pages:', Array.from(newSet));
+                return newSet;
+            });
+        }
         setIsActive(false);
         setCurrentPage(null);
         setCurrentStep(0);
@@ -101,6 +113,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
                 setShowWelcome,
                 wantsTutorial,
                 setWantsTutorial,
+                completedPages,
             }}
         >
             {children}

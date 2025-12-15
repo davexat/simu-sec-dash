@@ -113,7 +113,7 @@ export function TutorialTooltip() {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 -mt-1 -mr-1"
-                        onClick={skipTutorial}
+                        onClick={() => skipTutorial(currentPage!)}
                     >
                         <X className="h-4 w-4" />
                     </Button>
@@ -147,7 +147,7 @@ export function TutorialTooltip() {
                 <Button
                     variant="ghost"
                     size="sm"
-                    onClick={skipTutorial}
+                    onClick={() => skipTutorial(currentPage!)}
                     className="w-full text-xs"
                 >
                     Saltar Tutorial
