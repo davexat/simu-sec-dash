@@ -20,22 +20,14 @@ export default function Login() {
         e.preventDefault();
         setLoading(true);
 
-        // Hardcoded password check as requested for the prototype
-        if (password === "3Mp10.tst3") {
-            await login(username || "admin"); // Default to 'admin' if no username provided
-            toast({
-                title: "Bienvenido",
-                description: "Acceso autorizado al sistema de seguridad.",
-            });
-            navigate("/dashboard");
-        } else {
-            toast({
-                title: "Acceso Denegado",
-                description: "Credenciales incorrectas. Intente nuevamente.",
-                variant: "destructive",
-            });
-            setPassword("");
-        }
+        // Permite la entrada a cualquiera (temporal para pruebas)
+        await login(username || "admin");
+        toast({
+            title: "Bienvenido",
+            description: "Acceso autorizado (Modo de prueba habilitado).",
+        });
+        navigate("/dashboard");
+
         setLoading(false);
     };
 
@@ -79,7 +71,7 @@ export default function Login() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" type="submit" disabled={loading || !password}>
+                        <Button className="w-full" type="submit" disabled={loading}>
                             {loading ? "Verificando..." : "Iniciar Sesión"}
                         </Button>
                     </CardFooter>
